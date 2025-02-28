@@ -18,15 +18,19 @@
                 }
                 fieldset{
                     background:#4f4f4f;
+                    text-align:left;
                 }
                 input{
                     font-size:1.1em;
-                    width:100%;
                     box-sizing:border-box;
                     -webkit-box-sizing:border-box;
                     -moz-box-sizing:border-box;
                     background:#dddddd;
                     color:#000000;
+                    width:100%;
+                }
+                input[type='checkbox']{
+                    width:auto;
                 }
                 button{
                     border:0;
@@ -47,7 +51,7 @@
                     background:#47c266;
                 }
                 .bgrn:hover{
-                    background:#5aaf6f;
+                    background:#478a58;
                 }
                 a{
                     color:#1fa3ec;
@@ -61,28 +65,97 @@
                 <div>
                     <h2>Speicher M01</h2>
                 </div>
-                <fieldset>
+<!--                <fieldset>
                     <legend>
-                        <b>&nbsp;WLAN-Einstellungen&nbsp;</b>
+                        &nbsp;allgemeine Einstellungen&nbsp;
                     </legend>
                     <form method='get' action='einst'>
                         <p>
-                            <b>WLAN - SSID</b><br>
-                            <input id='s1' placeholder='WiFi Netzwerk eingeben' name='ssid' value=''>
+                            <label for="ma">als Master</label>
+                            <input type="checkbox" id="ma" name="ma">
                         </p>
                         <p>
-                            <b>WLAN - Passwort</b><br>
-                            <input id='p1' type='password' placeholder='WiFi Passwort eingeben' name='pwd' value=''>
+                            <label for="md">mehr Daten</label>
+                            <input type="checkbox" id="md" name="md">
                         </p>
-                        <button name='save' value='1' type='submit' class='button bgrn'>Speichern</button>
+                        <button name='save' value='ei' type='submit' class='button bgrn'>Speichern</button>
+                    </form>
+                </fieldset>-->
+                <p></p>
+                <fieldset>
+                    <legend>
+                        &nbsp;WLAN-Einstellungen&nbsp;
+                    </legend>
+                    <form method='get' action='einst'>
+                        <p>
+                            <label for="mqtt">WLAN</label>
+                            <input type="checkbox" id="wl" name="wl">
+                        </p>
+                        <p>
+                            WLAN - SSID<br>
+                            <input id='id' placeholder='WLAN Netzwerk eingeben' name='ssid' value=''>
+                        </p>
+                        <p>
+                            WLAN - Passwort<br>
+                            <input id='pw' type='password' placeholder='WLAN Passwort eingeben' name='pwd' value=''>
+                        </p>
+                        <button name='save' value='wl' type='submit' class='button bgrn'>Speichern</button>
                     </form>
                 </fieldset>
-                <div id=but3d style='display: block;'></div>
+                <p></p>
+                <fieldset>
+                    <legend>
+                        &nbsp;MQTT-Einstellungen&nbsp;
+                    </legend>
+                    <form method='get' action='einst'>
+                        <p>
+                            <label for="mqtt">MQTT</label>
+                            <input type="checkbox" id="mq" name="mq">
+                        </p>
+                        <p>
+                            MQTT - Server<br>
+                            <input id='mqip' placeholder='MQTT Server eingeben' name='mqip' value=''>
+                        </p>
+                        <p>
+                            MQTT - Topic<br>
+                            <input id='mqtp' placeholder='Topic eingeben' name='mqtp' value=''>
+                        </p>
+                        <button name='save' value='mq' type='submit' class='button bgrn'>Speichern</button>
+                    </form>
+                </fieldset>
                 <p>
                     <form id=but3 style='display: block;' action='/' method='get'><button>Hauptmen&uuml;</button></form>
                     <div style='text-align:right;font-size:11px;'>
                         <hr/><a href='' target='_blank' style='color:#aaa;'>Speicher2Mqtt 0.1 von Martin Dienert</a>
                     </div>
+                </p>
             </div>
         </body>
+        <script>
+            let eB=s=>document.getElementById(s);
+            let to;
+            function dho(){
+                clearTimeout(to);
+                let x=new XMLHttpRequest();
+                x.overrideMimeType('application/json');
+                x.open('GET','/einst.json',true);
+                x.onreadystatechange=()=>{
+                    if(x.readyState==4&&x.status==200){
+                        sD(x.responseText);
+                    }};
+                x.send();
+            }
+            function sD(t){
+                od = JSON.parse(t);
+                eB('ma').checked=od.Master;
+                eB('md').checked=od.mDaten;
+                eB('wl').checked=od.Wlan;
+                eB('id').value=od.SSId;
+                eB('pw').value=od.PWD;
+                eB('mq').checked=od.Mqtt;
+                eB('mqip').value=od.MqttIp;
+                eB('mqtp').value=od.MqttTp;
+            }
+            dho();
+        </script>
     </html>

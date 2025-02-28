@@ -1,7 +1,7 @@
 #include <SpeicherLib.h>
 
 Daten::Daten(){
-    json = "{\"Spannung\":0,\"Ladezustand\":0,\"StromAkku\":0,\"Typ\":0,\"StromPV\":0,\"Temperatur\":0}";
+    genJson();
 }
 
 void Daten::genJson(){

@@ -6,12 +6,12 @@ class Daten  // Class Declaration
 {
     public:
         Daten();
-        byte typ;
-        float spannung;
-        int soc;
-        float stromakku;
-        float strompv;
-        int temperatur;
+        byte typ = 0;
+        float spannung = 0;
+        int soc = 0;
+        float stromakku = 0;
+        float strompv = 0;
+        int temperatur = 0;
         String json;
         void genJson();
 };
