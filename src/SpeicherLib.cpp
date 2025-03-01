@@ -75,18 +75,18 @@ boolean Speicher::pruefsumme(byte* bp, int l1, byte* bp2, int l2){
 }
 
 void Speicher::decodieren1(byte* bp){
-    daten->spannung = (float)(bp[62] * 256 + bp[63]) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
+    daten->spannung = (float)((sint16)(bp[62] * 256 + bp[63])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
     daten->soc = bp[59];
-    daten->stromakku = (float)(bp[66] * 256 + bp[67]) / 10;
+    daten->stromakku = (float)((sint16)(bp[66] * 256 + bp[67])) / 10;
     daten->typ = 1;
     daten->genJson();
 }
 
 void Speicher::decodieren2(byte* bp){
-    daten->spannung = (float)(bp[123] * 256 + bp[124]) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
+    daten->spannung = (float)((sint16)(bp[123] * 256 + bp[124])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
     daten->soc = bp[122];
-    daten->stromakku = (float)(bp[125] * 256 + bp[126]) / 10;
-    daten->strompv = (float)(bp[150] * 256 + bp[151]) / 10;
+    daten->stromakku = (float)((sint16)(bp[125] * 256 + bp[126])) / 10;
+    daten->strompv = (float)((sint16)(bp[150] * 256 + bp[151])) / 10;
     daten->temperatur = bp[136];
     daten->typ = 2;
     daten->genJson();
