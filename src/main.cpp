@@ -12,6 +12,9 @@ const char* ssidap = "AP-Speicher";
 IPAddress ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
 IPAddress subnet(255,255,255,0);
+unsigned long jetzt = millis();
+unsigned long letztesTel1 = jetzt;
+unsigned long letztePub = jetzt;
 
 // Objekte ---------------------------------------------
 ESP8266WebServer server(80);
@@ -106,13 +109,11 @@ void setupWS(){
 }
 
 // Mqtt Client
-unsigned long letztePub = millis();
-
 //void callback(char* topic, byte* payload, unsigned int length){
 //}
 
 void setupMqtt(){
-  mqttClient.setServer("192.168.178.30", 1883); // Mqtt Server Ip
+  mqttClient.setServer(einst.mqttIP.c_str(), 1883); // Mqtt Server Ip
 //  mqttClient.setCallback(callback);
 }
 
@@ -129,19 +130,13 @@ void reconnectMqtt(){
 }
 
 void mqttPub(){
+  if(einst.mqtt){
     if(!mqttClient.connected()){
         reconnectMqtt();
     }
-    mqttClient.publish("SpeicherM01", daten.json.c_str());
-}
-
-void runMqtt(){
-  unsigned long jetzt = millis();
-  if(jetzt - letztePub > 30000){
-    letztePub = jetzt;
-    mqttPub();
+    mqttClient.publish(einst.mqttTp.c_str(), daten.json.c_str());
+    letztePub = millis();
   }
-
 }
 
 // Arduino
@@ -167,7 +162,18 @@ void setup(){
 void loop(){
   digitalWrite(LED_BUILTIN,HIGH);
   speicher.run();
-  runMqtt();
+  jetzt = millis();
+  if(einst.mqtt){
+    if(jetzt - letztePub > 30000){
+      mqttPub();
+    }
+  }
+  if(einst.mDaten){
+    if(jetzt - letztesTel1 > 240000){
+      letztesTel1 = jetzt;
+      speicher.sendeTel(1);
+    }
+  }
   server.handleClient();
   digitalWrite(LED_BUILTIN,LOW);
   delay(500);  
