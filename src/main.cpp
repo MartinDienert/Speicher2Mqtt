@@ -134,7 +134,7 @@ void mqttPub(){
     if(!mqttClient.connected()){
         reconnectMqtt();
     }
-    mqttClient.publish(einst.mqttTp.c_str(), daten.json.c_str());
+    mqttClient.publish((einst.mqttTp + "/Daten").c_str(), daten.json.c_str());
     letztePub = millis();
   }
 }
