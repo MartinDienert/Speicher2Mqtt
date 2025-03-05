@@ -5,18 +5,51 @@
 #include <PubSubClient.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
+//#include <MqttClient.h>
 
-
-ESP8266WebServer server(80);
+// allgemeine Einstellungen ----------------------------
 const char* ssidap = "AP-Speicher";
 IPAddress ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
 IPAddress subnet(255,255,255,0);
 
+// Objekte ---------------------------------------------
+ESP8266WebServer server(80);
+WiFiClient wifiClient;
+PubSubClient mqttClient = PubSubClient(wifiClient);
 Einstellungen einst = Einstellungen(&server);
 Daten daten = Daten();
 Speicher speicher = Speicher(&daten);
 
+// Wifi Client -----------------------------------------
+void setupWifi(){
+  if(einst.wlan){
+    WiFi.begin(einst.ssid, einst.pwd);
+    int i = 0;
+    while(i < 60 && WiFi.status() != WL_CONNECTED){   //warten auf Wlan connect, langsames flackern der LED
+      digitalWrite(LED_BUILTIN,HIGH);
+      delay(500);
+      digitalWrite(LED_BUILTIN,LOW);
+      delay(500);
+      i++;
+    }
+  }
+}
+
+void setupAP(){
+  if(WiFi.status() != WL_CONNECTED){
+    WiFi.softAPConfig(ip, gateway, subnet);
+    WiFi.softAP(ssidap);
+    for(int i = 0; i < 10; i++){                        //Accesspoint aktiviert, 10 mal schnelles flackern der LED
+      digitalWrite(LED_BUILTIN,HIGH);
+      delay(50);
+      digitalWrite(LED_BUILTIN,LOW);
+      delay(50);
+    }
+  }
+}
+
+// Webserver -------------------------------------------
 void fehlerseite(){
   server.send(404, "text/plain", "Link wurde nicht gefunden!");
 }
@@ -61,28 +94,7 @@ void softreset(){
   ESP.restart();
 }
 
-void setup(){
-  pinMode(D1, OUTPUT);
-  digitalWrite(D1, LOW);
-  Serial.setTimeout(40);
-  Serial.begin(115200);
-  if(LittleFS.begin()){
-    einst.alle_einst_laden();
-    if(einst.wlan){
-      WiFi.begin(einst.ssid, einst.pwd);
-      int i = 0;
-      while(i < 60 && WiFi.status() != WL_CONNECTED){
-        delay(500);
-        i++;
-      }
-    }
-  }
-  if(WiFi.status() != WL_CONNECTED){
-    WiFi.softAPConfig(ip, gateway, subnet);
-    WiFi.softAP(ssidap);
-    delay(500);
-  }
-
+void setupWS(){
   server.onNotFound(fehlerseite);
   server.on("/", hauptseite);
   server.on("/einst", einstellungsseite);
@@ -91,7 +103,61 @@ void setup(){
   server.on("/md4", mehrdaten);
   server.on("/.", softreset);
   server.begin();
+}
 
+// Mqtt Client
+unsigned long letztePub = millis();
+
+//void callback(char* topic, byte* payload, unsigned int length){
+//}
+
+void setupMqtt(){
+  mqttClient.setServer("192.168.178.30", 1883); // Mqtt Server Ip
+//  mqttClient.setCallback(callback);
+}
+
+void reconnectMqtt(){
+  while(!mqttClient.connected()){
+    String clientId = "ESP8266Client-";
+    clientId += String(random(0xffff), HEX);
+    if(mqttClient.connect(clientId.c_str())){
+//      mqttClient.subscribe("inTopic");
+    }else{
+      delay(5000);
+    }
+  }
+}
+
+void mqttPub(){
+    if(!mqttClient.connected()){
+        reconnectMqtt();
+    }
+    mqttClient.publish("SpeicherM01", daten.json.c_str());
+}
+
+void runMqtt(){
+  unsigned long jetzt = millis();
+  if(jetzt - letztePub > 30000){
+    letztePub = jetzt;
+    mqttPub();
+  }
+
+}
+
+// Arduino
+void setup(){
+  pinMode(D1, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(D1, LOW);
+  Serial.setTimeout(40);
+  Serial.begin(115200);
+  if(LittleFS.begin()){
+    einst.alle_einst_laden();
+    setupWifi();
+  }
+  setupAP();
+  setupWS();
+  setupMqtt();
   while(Serial.available()){      // Puffer leeren
     Serial.read();
     delay(5);
@@ -99,6 +165,10 @@ void setup(){
 }
 
 void loop(){
+  digitalWrite(LED_BUILTIN,HIGH);
   speicher.run();
-  server.handleClient();  
+  runMqtt();
+  server.handleClient();
+  digitalWrite(LED_BUILTIN,LOW);
+  delay(500);  
 }

@@ -1,3 +1,4 @@
+#include <Main.h>
 #include <SpeicherLib.h>
 
 Daten::Daten(){
@@ -17,6 +18,44 @@ void Daten::genJson(){
     }
     json += "}";
     typ = 0;
+}
+
+void Daten::setDaten(byte t, float s, int so, float sa){
+    typ = t;
+    // spannung_ = spannung;
+    // soc_ = soc;
+    // stromakku_ = stromakku;
+    if(spannung != s){
+        spannung = s;
+        geaendert = true;
+    }
+    if(soc != so){
+        soc = so;
+        geaendert = true;
+    }
+    if(stromakku != sa){
+        stromakku = sa;
+        geaendert = true;
+    }
+    if(geaendert){
+        genJson();
+        mqttPub();
+        geaendert = false;
+    }
+}
+
+void Daten::setDaten(byte t, float s, int so, float sa, float sp, int tp){
+    // strompv_ = strompv;
+    // temperatur_ = temperatur;
+    if(strompv != sp){
+        strompv = sp;
+        geaendert = true;
+    }
+    if(temperatur != tp){
+        temperatur = tp;
+        geaendert = true;
+    }
+    setDaten(t, s, so, sa);
 }
 
 Speicher::Speicher(Daten* d){
@@ -75,19 +114,22 @@ boolean Speicher::pruefsumme(byte* bp, int l1, byte* bp2, int l2){
 }
 
 void Speicher::decodieren1(byte* bp){
-    daten->spannung = (float)((sint16)(bp[62] * 256 + bp[63])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
-    daten->soc = bp[59];
-    daten->stromakku = (float)((sint16)(bp[66] * 256 + bp[67])) / 10;
-    daten->typ = 1;
-    daten->genJson();
+    daten->setDaten(1, (float)((sint16)(bp[62] * 256 + bp[63])) / 10, bp[59], (float)((sint16)(bp[66] * 256 + bp[67])) / 10);
+    // daten->spannung = (float)((sint16)(bp[62] * 256 + bp[63])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
+    // daten->soc = bp[59];
+    // daten->stromakku = (float)((sint16)(bp[66] * 256 + bp[67])) / 10;
+    // daten->typ = 1;
+    // daten->genJson();
 }
 
 void Speicher::decodieren2(byte* bp){
-    daten->spannung = (float)((sint16)(bp[123] * 256 + bp[124])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
-    daten->soc = bp[122];
-    daten->stromakku = (float)((sint16)(bp[125] * 256 + bp[126])) / 10;
-    daten->strompv = (float)((sint16)(bp[150] * 256 + bp[151])) / 10;
-    daten->temperatur = bp[136];
-    daten->typ = 2;
-    daten->genJson();
+    daten->setDaten(2, (float)((sint16)(bp[123] * 256 + bp[124])) / 10, bp[122],(float)((sint16)(bp[125] * 256 + bp[126])) / 10,
+                       (float)((sint16)(bp[150] * 256 + bp[151])) / 10, bp[136]);
+    // daten->spannung = (float)((sint16)(bp[123] * 256 + bp[124])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
+    // daten->soc = bp[122];
+    // daten->stromakku = (float)((sint16)(bp[125] * 256 + bp[126])) / 10;
+    // daten->strompv = (float)((sint16)(bp[150] * 256 + bp[151])) / 10;
+    // daten->temperatur = bp[136];
+    // daten->typ = 2;
+    // daten->genJson();
 }

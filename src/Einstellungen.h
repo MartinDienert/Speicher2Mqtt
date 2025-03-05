@@ -1,11 +1,13 @@
 #ifndef EINSTELLUNGEN_H_
 #define EINSTELLUNGEN_H_
 #include <Arduino.h>
+#include <ESP8266WebServer.h>
+
 
 class Einstellungen  // Class Declaration
 {
     public:
-        Einstellungen(ESP8266WebServer*);
+        Einstellungen(ESP8266WebServer* s);
         boolean master = false;
         boolean mDaten = false;
         boolean wlan = false;
