@@ -152,24 +152,38 @@ void mqttPub(){
 
 // NTP Zeitserver
 #define MY_TZ "CET-1CEST,M3.5.0/02,M10.5.0/03"
-time_t now;
-tm tm;
+tm dat;
 
 void setupNTP(){
   if(!apModus)
     configTime(MY_TZ, einst.ntzIp);
 }
 
-void getZeitStr(char* d, char* z){
+void getZeit(){
   if(!apModus){
+    time_t now;
     time(&now);
-    localtime_r(&now, &tm);
-    sprintf(d, "%.2d.%.2d.%.4d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
-    sprintf(z, "%.2d:%.2d:%.2d", tm.tm_hour, tm.tm_min, tm.tm_sec);
-  }else{
-    d[0] = 0;
-    z[0] = 0;
+    localtime_r(&now, &dat);
   }
+}
+
+String getDatumStr(){
+  getZeit();
+  if(!apModus){
+    char d[11];
+    sprintf(d, "%.2d.%.2d.%.4d", dat.tm_mday, dat.tm_mon + 1, dat.tm_year + 1900);
+    return (String)d;
+  }
+  return "";
+}
+
+String getZeitStr(){
+  if(!apModus){
+    char z[9];
+    sprintf(z, "%.2d:%.2d:%.2d", dat.tm_hour, dat.tm_min, dat.tm_sec);
+    return (String)z;
+  }
+  return "";
 }
 
 // Arduino

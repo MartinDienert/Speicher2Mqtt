@@ -40,11 +40,8 @@ void Daten::setDaten(byte t, float s, int so, float sa){
         geaendert = true;
     }
     if(geaendert){
-        char d[11];
-        char z[9];
-        getZeitStr(d, z);
-        datum = d;
-        zeit = z;
+        datum = getDatumStr();
+        zeit = getZeitStr();
         genJson();
         mqttPub();
         geaendert = false;
