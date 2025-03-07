@@ -38,6 +38,10 @@
                 font-weight:normal;
                 margin-right:10px;
             }
+            span.span3{
+                width:210px;
+                margin-right:13px;
+            }
             button{
                 border:0;
                 border-radius:0.3rem;
@@ -71,15 +75,19 @@
             <div>
                 <h2>Speicher M01</h2>
             </div>
-            <div class='div1'>Spannung:<span class='span1' id='sp'>52.8</span><span class='span2'>V</span>
+            <div class='div1'>Spannung:<span class='span1' id='sp'>-1</span><span class='span2'>V</span>
         </div>
-        <div class='div1'>Ladezustand (SOC):<span class='span1' id='lz'>71</span><span class='span2'>%</span>
+        <div class='div1'>Ladezustand (SOC):<span class='span1' id='lz'>-1</span><span class='span2'>%</span>
         </div>
-        <div class='div1'>Strom Akku:<span class='span1' id='s1'>2.8</span><span class='span2'>A</span>
+        <div class='div1'>Strom Akku:<span class='span1' id='s1'>-1</span><span class='span2'>A</span>
         </div>
-        <div class='div1' id='s2d'>Strom PV:<span class='span1' id='s2'>0.0</span><span class='span2'>A</span>
+        <div class='div1' id='s2d'>Strom PV:<span class='span1' id='s2'>-1</span><span class='span2'>A</span>
         </div>
-        <div class='div1' id='tpd'>Temperatur:<span class='span1' id='tp'>23</span><span class='span2'>°C</span>
+        <div class='div1' id='tpd'>Temperatur:<span class='span1' id='tp'>-1</span><span class='span2'>°C</span>
+        </div>
+        <div class='div1' id='dtd'>Datum:<span class='span1 span3' id='dt'>-1</span>
+        </div>
+        <div class='div1' id='ztd'>Zeit:<span class='span1 span3' id='zt'>-1</span>
         </div>
         <div id=but3d class='db'>
         </div>
@@ -122,15 +130,25 @@
             eB('sp').innerHTML=od.Spannung;
             eB('lz').innerHTML=od.Ladezustand;
             eB('s1').innerHTML=od.StromAkku;
+            eB('s2').innerHTML=od.StromPV;
+            eB('tp').innerHTML=od.Temperatur;
             if(od.Typ=='1'){
                 eB('s2d').style.display='none';
                 eB('tpd').style.display='none';
             }else{
                 eB('s2d').style.display='flex';
                 eB('tpd').style.display='flex';
-                eB('s2').innerHTML=od.StromPV;
-                eB('tp').innerHTML=od.Temperatur;
             }
+            eB('dt').innerHTML=od.Datum;
+            if(od.Datum=='')
+                eB('dtd').style.display='none';
+            else
+                eB('dtd').style.display='flex';
+            eB('zt').innerHTML=od.Zeit;
+            if(od.Zeit=='')
+                eB('ztd').style.display='none';
+            else
+                eB('ztd').style.display='flex';
         }
         dho();
     </script>

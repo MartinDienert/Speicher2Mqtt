@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <PubSubClient.h>
+#include <time.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
 //#include <MqttClient.h>
@@ -25,7 +26,10 @@ Daten daten = Daten();
 Speicher speicher = Speicher(&daten);
 
 // Wifi Client -----------------------------------------
+boolean apModus = false;
+
 void setupWifi(){
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
   if(einst.wlan){
     WiFi.begin(einst.ssid, einst.pwd);
     int i = 0;
@@ -49,6 +53,7 @@ void setupAP(){
       digitalWrite(LED_BUILTIN,LOW);
       delay(50);
     }
+    apModus = true;
   }
 }
 
@@ -113,29 +118,57 @@ void setupWS(){
 //}
 
 void setupMqtt(){
-  mqttClient.setServer(einst.mqttIP.c_str(), 1883); // Mqtt Server Ip
+  mqttClient.setServer(einst.mqttIp.c_str(), 1883); // Mqtt Server Ip
 //  mqttClient.setCallback(callback);
 }
 
 void reconnectMqtt(){
-  while(!mqttClient.connected()){
-    String clientId = "ESP8266Client-";
-    clientId += String(random(0xffff), HEX);
-    if(mqttClient.connect(clientId.c_str())){
-//      mqttClient.subscribe("inTopic");
-    }else{
-      delay(5000);
+  if(!apModus){
+    int i = 0;
+    while(i < 2 && !mqttClient.connected()){
+      String clientId = "ESP8266Client-";
+      clientId += String(random(0xffff), HEX);
+      if(mqttClient.connect(clientId.c_str())){
+  //      mqttClient.subscribe("inTopic");
+      }else{
+        delay(5000);
+      }
+      i++;
     }
   }
 }
 
 void mqttPub(){
-  if(einst.mqtt){
+  if(einst.mqtt && !apModus){
     if(!mqttClient.connected()){
-        reconnectMqtt();
+      reconnectMqtt();
     }
-    mqttClient.publish((einst.mqttTp + "/Daten").c_str(), daten.json.c_str());
-    letztePub = millis();
+    if(mqttClient.connected()){
+      mqttClient.publish((einst.mqttTp + "/Daten").c_str(), daten.json.c_str());
+      letztePub = millis();
+    }
+  }
+}
+
+// NTP Zeitserver
+#define MY_TZ "CET-1CEST,M3.5.0/02,M10.5.0/03"
+time_t now;
+tm tm;
+
+void setupNTP(){
+  if(!apModus)
+    configTime(MY_TZ, einst.ntzIp);
+}
+
+void getZeitStr(char* d, char* z){
+  if(!apModus){
+    time(&now);
+    localtime_r(&now, &tm);
+    sprintf(d, "%.2d.%.2d.%.4d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+    sprintf(z, "%.2d:%.2d:%.2d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+  }else{
+    d[0] = 0;
+    z[0] = 0;
   }
 }
 
@@ -153,21 +186,24 @@ void setup(){
   setupAP();
   setupWS();
   setupMqtt();
-  while(Serial.available()){      // Puffer leeren
+  setupNTP();
+  while(Serial.available()){          // Puffer leeren
     Serial.read();
     delay(5);
   }
 }
 
 void loop(){
-  digitalWrite(LED_BUILTIN,HIGH);
+  digitalWrite(LED_BUILTIN,LOW);      // LED leuchtet
   speicher.run();
+  yield();
   jetzt = millis();
   if(einst.mqtt){
     if(jetzt - letztePub > 30000){
       mqttPub();
     }
   }
+  yield();
   if(einst.mDaten){
     if(jetzt - letztesTel1 > 240000){
       letztesTel1 = jetzt;
@@ -175,6 +211,6 @@ void loop(){
     }
   }
   server.handleClient();
-  digitalWrite(LED_BUILTIN,LOW);
-  delay(500);  
+  digitalWrite(LED_BUILTIN,HIGH);     // LED ist in der Pause aus
+  delay(300);  
 }

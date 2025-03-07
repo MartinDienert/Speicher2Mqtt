@@ -7,5 +7,6 @@ extern PubSubClient mqttClient;
 
 void reconnectMqtt();
 void mqttPub();
+void getZeitStr(char* d, char* z);
 
 #endif

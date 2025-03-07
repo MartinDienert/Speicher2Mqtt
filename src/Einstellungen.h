@@ -10,11 +10,12 @@ class Einstellungen  // Class Declaration
         Einstellungen(ESP8266WebServer* s);
         boolean master = false;
         boolean mDaten = false;
+        String ntzIp = "de.pool.ntp.org";
         boolean wlan = false;
         String ssid = "";
         String pwd = "";
         boolean mqtt = false;
-        String mqttIP = "";
+        String mqttIp = "";
         String mqttTp = "";
         String json = "";
         void genJson();

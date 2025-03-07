@@ -65,7 +65,7 @@
                 <div>
                     <h2>Speicher M01</h2>
                 </div>
-<!--                <fieldset>
+                <fieldset>
                     <legend>
                         &nbsp;allgemeine Einstellungen&nbsp;
                     </legend>
@@ -78,9 +78,13 @@
                             <label for="md">mehr Daten</label>
                             <input type="checkbox" id="md" name="md">
                         </p>
+                        <p>
+                            NTZ - Server<br>
+                            <input id='ntip' placeholder='de.pool.ntp.org' name='ntip' value=''>
+                        </p>
                         <button name='save' value='ei' type='submit' class='button bgrn'>Speichern</button>
                     </form>
-                </fieldset>-->
+                </fieldset>
                 <p></p>
                 <fieldset>
                     <legend>
@@ -88,7 +92,7 @@
                     </legend>
                     <form method='get' action='einst'>
                         <p>
-                            <label for="mqtt">WLAN</label>
+                            <label for="wl">WLAN</label>
                             <input type="checkbox" id="wl" name="wl">
                         </p>
                         <p>
@@ -103,13 +107,16 @@
                     </form>
                 </fieldset>
                 <p></p>
+                <p>
+                    <form id=but3 style='display: block;' action='/' method='get'><button>Hauptmen&uuml;</button></form>
+                </p>
                 <fieldset>
                     <legend>
                         &nbsp;MQTT-Einstellungen&nbsp;
                     </legend>
                     <form method='get' action='einst'>
                         <p>
-                            <label for="mqtt">MQTT</label>
+                            <label for="mq">MQTT</label>
                             <input type="checkbox" id="mq" name="mq">
                         </p>
                         <p>
@@ -149,6 +156,7 @@
                 od = JSON.parse(t);
                 eB('ma').checked=od.Master;
                 eB('md').checked=od.mDaten;
+                eB('ntip').value=od.NtzIp;
                 eB('wl').checked=od.Wlan;
                 eB('id').value=od.SSId;
                 eB('pw').value=od.PWD;

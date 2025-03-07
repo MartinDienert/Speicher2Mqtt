@@ -18,6 +18,8 @@ class Daten  // Class Declaration
     //    float strompv_ = 0;
         int temperatur = 0;
     //    int temperatur_ = 0;
+        String datum = "";
+        String zeit = "";
         String json;
         void genJson();
         void setDaten(byte t, float s, int so, float sa, float sp, int tp);

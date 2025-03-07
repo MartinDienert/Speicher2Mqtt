@@ -16,6 +16,8 @@ void Daten::genJson(){
     }else{
         json += ",\"StromPV\":0,\"Temperatur\":0";
     }
+    json += ",\"Datum\":" + ("\"" + datum + "\"");
+    json += ",\"Zeit\":" + ("\"" + zeit + "\"");
     json += "}";
     typ = 0;
 }
@@ -38,6 +40,11 @@ void Daten::setDaten(byte t, float s, int so, float sa){
         geaendert = true;
     }
     if(geaendert){
+        char d[11];
+        char z[9];
+        getZeitStr(d, z);
+        datum = d;
+        zeit = z;
         genJson();
         mqttPub();
         geaendert = false;
