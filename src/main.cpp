@@ -4,23 +4,22 @@
 #include <ESP8266WebServer.h>
 #include <PubSubClient.h>
 #include <time.h>
+#include <arduino-timer.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
-//#include <MqttClient.h>
 
 // allgemeine Einstellungen ----------------------------
 const char* ssidap = "AP-Speicher";
 IPAddress ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
 IPAddress subnet(255,255,255,0);
-unsigned long jetzt = millis();
-unsigned long letztesTel1 = jetzt;
-unsigned long letztePub = jetzt;
 
 // Objekte ---------------------------------------------
 ESP8266WebServer server(80);
 WiFiClient wifiClient;
 PubSubClient mqttClient = PubSubClient(wifiClient);
+auto timer = timer_create_default();
+//Timer<> default_timer;
 Einstellungen einst = Einstellungen(&server);
 Daten daten = Daten();
 Speicher speicher = Speicher(&daten);
@@ -93,7 +92,7 @@ void sendeEinst(){
 
 void mehrdaten(){
   hauptseite();
-  speicher.sendeTel(1);
+  speicher.sendeTel(6);
 }
 
 void softreset(){
@@ -109,7 +108,7 @@ void setupWS(){
   server.on("/daten.json", sendeDaten);
   server.on("/einst.json", sendeEinst);
   server.on("/md4", mehrdaten);
-  server.on("/.", softreset);
+  server.on("/rst", softreset);
   server.begin();
 }
 
@@ -131,7 +130,7 @@ void reconnectMqtt(){
       if(mqttClient.connect(clientId.c_str())){
   //      mqttClient.subscribe("inTopic");
       }else{
-        delay(5000);
+        delay(500);
       }
       i++;
     }
@@ -145,7 +144,6 @@ void mqttPub(){
     }
     if(mqttClient.connected()){
       mqttClient.publish((einst.mqttTp + "/Daten").c_str(), daten.json.c_str());
-      letztePub = millis();
     }
   }
 }
@@ -186,6 +184,31 @@ String getZeitStr(){
   return "";
 }
 
+// Arduino-Timer
+bool mqttPubTimer(void *){
+  if(einst.mqtt)
+    mqttPub();
+  return true;
+}
+
+bool mDatenTimer(void *){
+  if(einst.mDaten)
+    speicher.sendeTel(7);
+  return true;
+}
+
+bool masterTimer(void *){
+  speicher.master();
+  return true;
+}
+
+void setupTimer(){
+  timer.every(30000, mqttPubTimer);
+  timer.every(240000, mDatenTimer);
+  if(einst.master)
+    timer.in(5000, masterTimer);
+}
+
 // Arduino
 void setup(){
   pinMode(D1, OUTPUT);
@@ -201,29 +224,20 @@ void setup(){
   setupWS();
   setupMqtt();
   setupNTP();
+  setupTimer();
   while(Serial.available()){          // Puffer leeren
     Serial.read();
     delay(5);
   }
 }
 
+
 void loop(){
   digitalWrite(LED_BUILTIN,LOW);      // LED leuchtet
+  timer.tick();
+  yield();
   speicher.run();
   yield();
-  jetzt = millis();
-  if(einst.mqtt){
-    if(jetzt - letztePub > 30000){
-      mqttPub();
-    }
-  }
-  yield();
-  if(einst.mDaten){
-    if(jetzt - letztesTel1 > 240000){
-      letztesTel1 = jetzt;
-      speicher.sendeTel(1);
-    }
-  }
   server.handleClient();
   digitalWrite(LED_BUILTIN,HIGH);     // LED ist in der Pause aus
   delay(300);  

@@ -24,41 +24,18 @@ void Daten::genJson(){
 
 void Daten::setDaten(byte t, float s, int so, float sa){
     typ = t;
-    // spannung_ = spannung;
-    // soc_ = soc;
-    // stromakku_ = stromakku;
-    if(spannung != s){
-        spannung = s;
-        geaendert = true;
-    }
-    if(soc != so){
-        soc = so;
-        geaendert = true;
-    }
-    if(stromakku != sa){
-        stromakku = sa;
-        geaendert = true;
-    }
-    if(geaendert){
-        datum = getDatumStr();
-        zeit = getZeitStr();
-        genJson();
-        mqttPub();
-        geaendert = false;
-    }
+    spannung = s;
+    soc = so;
+    stromakku = sa;
+    datum = getDatumStr();
+    zeit = getZeitStr();
+    genJson();
+    mqttPub();
 }
 
 void Daten::setDaten(byte t, float s, int so, float sa, float sp, int tp){
-    // strompv_ = strompv;
-    // temperatur_ = temperatur;
-    if(strompv != sp){
-        strompv = sp;
-        geaendert = true;
-    }
-    if(temperatur != tp){
-        temperatur = tp;
-        geaendert = true;
-    }
+    strompv = sp;
+    temperatur = tp;
     setDaten(t, s, so, sa);
 }
 
@@ -67,9 +44,18 @@ Speicher::Speicher(Daten* d){
 }
 
 void Speicher::sendeTel(int t){
-    tel = t;
-//    Serial.print("Senden: ");
-//    Serial.println(tel);
+    tele = t;
+}
+
+void Speicher::master(){
+    if(startTele < 6){
+        sendeTel(startTele);
+        timer.in(warteZeiten[startTele], masterTimer);
+        startTele++;
+    }else{
+        sendeTel(0);
+        timer.in(warteZeiten[5], masterTimer);
+    }
 }
 
 void Speicher::run(){
@@ -89,7 +75,6 @@ void Speicher::run(){
                 if(pruefsumme(bp, 6, bp2, 153))
                     decodieren2(bp2);
             }
-//            Serial.println(l);
         }
         l = Serial.readBytes(bp, 6);
     }
@@ -97,13 +82,13 @@ void Speicher::run(){
 }
 
 void Speicher::senden(){
-    if(tel > 0){
+    if(tele >= 0){
         digitalWrite(D1, HIGH);
         delay(10);
-        Serial.write(telegram[tel - 1], 16);
-        delay(50);
+        Serial.write(telegramme[tele], teleGroesse[tele]);
+        delay(5);
         digitalWrite(D1, LOW);
-        tel = 0;
+        tele = -1;
     }
 }
 
@@ -119,21 +104,9 @@ boolean Speicher::pruefsumme(byte* bp, int l1, byte* bp2, int l2){
 
 void Speicher::decodieren1(byte* bp){
     daten->setDaten(1, (float)((sint16)(bp[62] * 256 + bp[63])) / 10, bp[59], (float)((sint16)(bp[66] * 256 + bp[67])) / 10);
-    // daten->spannung = (float)((sint16)(bp[62] * 256 + bp[63])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
-    // daten->soc = bp[59];
-    // daten->stromakku = (float)((sint16)(bp[66] * 256 + bp[67])) / 10;
-    // daten->typ = 1;
-    // daten->genJson();
 }
 
 void Speicher::decodieren2(byte* bp){
     daten->setDaten(2, (float)((sint16)(bp[123] * 256 + bp[124])) / 10, bp[122],(float)((sint16)(bp[125] * 256 + bp[126])) / 10,
                        (float)((sint16)(bp[150] * 256 + bp[151])) / 10, bp[136]);
-    // daten->spannung = (float)((sint16)(bp[123] * 256 + bp[124])) / 10;         // -> = auf Variablen über den Objektpointer zugreifen
-    // daten->soc = bp[122];
-    // daten->stromakku = (float)((sint16)(bp[125] * 256 + bp[126])) / 10;
-    // daten->strompv = (float)((sint16)(bp[150] * 256 + bp[151])) / 10;
-    // daten->temperatur = bp[136];
-    // daten->typ = 2;
-    // daten->genJson();
 }

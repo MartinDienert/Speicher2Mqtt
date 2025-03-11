@@ -100,7 +100,7 @@
             </form>
         </p>
         <p>
-            <form id=but0 class='db' action='.' method='get' onsubmit='return confirm("Wirklich neustarten?");'>
+            <form id=but0 class='db' action='rst' method='get' onsubmit='return confirm("Wirklich neustarten?");'>
                 <button name='rst' class='button bred'>Neustart</button>
             </form>
             <div style='text-align:right;font-size:11px;'>
@@ -113,16 +113,17 @@
         let to;
         function dho(){
             clearTimeout(to);
+            to=setTimeout(()=>{
+                dho();
+            },3000);
             let x=new XMLHttpRequest();
             x.overrideMimeType('application/json');
             x.open('GET','/daten.json',true);
             x.onreadystatechange=()=>{
                 if(x.readyState==4&&x.status==200){
                     sD(x.responseText);
-                    to=setTimeout(()=>{
-                        dho();
-                    },3000);
-                }};
+                }
+            };
             x.send();
         }
         function sD(t){
