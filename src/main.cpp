@@ -5,6 +5,7 @@
 #include <PubSubClient.h>
 #include <time.h>
 #include <arduino-timer.h>
+#include <Main.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
 
@@ -18,8 +19,8 @@ IPAddress subnet(255,255,255,0);
 ESP8266WebServer server(80);
 WiFiClient wifiClient;
 PubSubClient mqttClient = PubSubClient(wifiClient);
-auto timer = timer_create_default();
-//Timer<> default_timer;
+//auto timer = timer_create_default();
+Timer<> timer;
 Einstellungen einst = Einstellungen(&server);
 Daten daten = Daten();
 Speicher speicher = Speicher(&daten);
@@ -57,29 +58,50 @@ void setupAP(){
 }
 
 // Webserver -------------------------------------------
+void dateiSenden(String dn, String typ = "text/html"){
+  File datei = LittleFS.open(dn, "r");
+  if(!datei){
+    server.send(404, "text/plain", "Datei nicht gefunden.");
+    return;
+  }
+  server.streamFile(datei, typ);
+  datei.close();
+
+}
+
 void fehlerseite(){
   server.send(404, "text/plain", "Link wurde nicht gefunden!");
 }
 
 void hauptseite(){
-  File datei = LittleFS.open("/index.html", "r");
-  if(!datei){
-    server.send(404, "text/plain", "Datei nicht gefunden.");
-    return;
-  }
-  server.streamFile(datei, "text/html");
-  datei.close();
+  dateiSenden("/index.html");
 }
 
-void einstellungsseite(){
+void einstellungsmenue(){
+  boolean master_alt = einst.master;
   einst.setEinst();
-  File datei = LittleFS.open("/einst.html", "r");
-  if(!datei){
-    server.send(404, "text/plain", "Datei nicht gefunden.");
-    return;
+  if(!master_alt && einst.master){
+    // Mastermodus einschalten
+  }else if(master_alt && !einst.master){
+    // Mastermodus ausschalten
   }
-  server.streamFile(datei, "text/html");
-  datei.close();
+  dateiSenden("/einst.html");
+}
+
+void einstellungAll(){
+  dateiSenden("/einstAll.html");
+}
+
+void einstellungWl(){
+  dateiSenden("/einstWl.html");
+}
+
+void einstellungMq(){
+  dateiSenden("/einstMq.html");
+}
+
+void einstellungCSS(){
+  dateiSenden("/einst.css", "text/css");
 }
 
 void sendeDaten(){
@@ -104,7 +126,11 @@ void softreset(){
 void setupWS(){
   server.onNotFound(fehlerseite);
   server.on("/", hauptseite);
-  server.on("/einst", einstellungsseite);
+  server.on("/einst", einstellungsmenue);
+  server.on("/einstAll", einstellungAll);
+  server.on("/einstWl", einstellungWl);
+  server.on("/einstMq", einstellungMq);
+  server.on("/einst.css", einstellungCSS);
   server.on("/daten.json", sendeDaten);
   server.on("/einst.json", sendeEinst);
   server.on("/md4", mehrdaten);
@@ -166,8 +192,8 @@ void getZeit(){
 }
 
 String getDatumStr(){
-  getZeit();
   if(!apModus){
+    getZeit();
     char d[11];
     sprintf(d, "%.2d.%.2d.%.4d", dat.tm_mday, dat.tm_mon + 1, dat.tm_year + 1900);
     return (String)d;
@@ -193,12 +219,17 @@ bool mqttPubTimer(void *){
 
 bool mDatenTimer(void *){
   if(einst.mDaten)
-    speicher.sendeTel(7);
+    speicher.sendeTel(telMD);
   return true;
 }
 
 bool masterTimer(void *){
   speicher.master();
+  return true;
+}
+
+bool zeitTimer(void *){
+  speicher.zeit();
   return true;
 }
 

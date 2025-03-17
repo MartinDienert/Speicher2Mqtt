@@ -1,169 +1,34 @@
 <!DOCTYPE html>
-    <html lang='de'>
-        <head>
-            <meta charset='utf-8'>
-            <meta name='viewport' content='width=device-width,initial-scale=1,user-scalable=no'/>
-            <style>
-                body{
-                    text-align:center;
-                    font-family:verdana,sans-serif;
-                    background:#252525;
-                }
-                div{
-                    text-align:center;
-                    font-size:1.1em;
-                    display:inline-block;
-                    color:#eaeaea;
-                    width:340px;
-                }
-                fieldset{
-                    background:#4f4f4f;
-                    text-align:left;
-                }
-                input{
-                    font-size:1.1em;
-                    box-sizing:border-box;
-                    -webkit-box-sizing:border-box;
-                    -moz-box-sizing:border-box;
-                    background:#dddddd;
-                    color:#000000;
-                    width:100%;
-                }
-                input[type='checkbox']{
-                    width:auto;
-                }
-                button{
-                    border:0;
-                    border-radius:0.3rem;
-                    background:#1fa3ec;
-                    color:#faffff;
-                    line-height:2.4rem;
-                    font-size:1.2rem;
-                    width:100%;
-                    -webkit-transition-duration:0.4s;
-                    transition-duration:0.4s;
-                    cursor:pointer;
-                    }
-                button:hover{
-                    background:#0e70a4;
-                }
-                .bgrn{
-                    background:#47c266;
-                }
-                .bgrn:hover{
-                    background:#478a58;
-                }
-                a{
-                    color:#1fa3ec;
-                    text-decoration:none;
-                }
-            </style>
-            <title>Speicher M01 - Einstellungen</title>
-        </head>
-        <body>
+<html lang='de'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
+        <link rel="stylesheet" href="einst.css">
+        <title>Speicher M01 - Einstellungsmenü</title>
+    </head>
+    <body>
+        <div class='div0'>
             <div>
-                <div>
-                    <h2>Speicher M01</h2>
-                </div>
-                <fieldset>
-                    <legend>
-                        &nbsp;allgemeine Einstellungen&nbsp;
-                    </legend>
-                    <form method='get' action='einst'>
-                        <p>
-                            <label for="ma">als Master</label>
-                            <input type="checkbox" id="ma" name="ma">
-                        </p>
-                        <p>
-                            <label for="md">mehr Daten</label>
-                            <input type="checkbox" id="md" name="md">
-                        </p>
-                        <p>
-                            NTZ - Server<br>
-                            <input id='ntip' placeholder='de.pool.ntp.org' name='ntip' value=''>
-                        </p>
-                        <button name='save' value='ei' type='submit' class='button bgrn'>Speichern</button>
-                    </form>
-                </fieldset>
-                <p></p>
-                <fieldset>
-                    <legend>
-                        &nbsp;WLAN-Einstellungen&nbsp;
-                    </legend>
-                    <form method='get' action='einst'>
-                        <p>
-                            <label for="wl">WLAN</label>
-                            <input type="checkbox" id="wl" name="wl">
-                        </p>
-                        <p>
-                            WLAN - SSID<br>
-                            <input id='id' placeholder='WLAN Netzwerk eingeben' name='ssid' value=''>
-                        </p>
-                        <p>
-                            WLAN - Passwort<br>
-                            <input id='pw' type='password' placeholder='WLAN Passwort eingeben' name='pwd' value=''>
-                        </p>
-                        <button name='save' value='wl' type='submit' class='button bgrn'>Speichern</button>
-                    </form>
-                </fieldset>
-                <p></p>
-                <p>
-                    <form id=but3 style='display: block;' action='/' method='get'><button>Hauptmen&uuml;</button></form>
-                </p>
-                <fieldset>
-                    <legend>
-                        &nbsp;MQTT-Einstellungen&nbsp;
-                    </legend>
-                    <form method='get' action='einst'>
-                        <p>
-                            <label for="mq">MQTT</label>
-                            <input type="checkbox" id="mq" name="mq">
-                        </p>
-                        <p>
-                            MQTT - Server<br>
-                            <input id='mqip' placeholder='MQTT Server eingeben' name='mqip' value=''>
-                        </p>
-                        <p>
-                            MQTT - Topic<br>
-                            <input id='mqtp' placeholder='Topic eingeben' name='mqtp' value=''>
-                        </p>
-                        <button name='save' value='mq' type='submit' class='button bgrn'>Speichern</button>
-                    </form>
-                </fieldset>
-                <p>
-                    <form id=but3 style='display: block;' action='/' method='get'><button>Hauptmen&uuml;</button></form>
-                    <div style='text-align:right;font-size:11px;'>
-                        <hr/><a href='' target='_blank' style='color:#aaa;'>Speicher2Mqtt 0.1 von Martin Dienert</a>
-                    </div>
-                </p>
+                <h2>Speicher M01</h2>
             </div>
-        </body>
-        <script>
-            let eB=s=>document.getElementById(s);
-            let to;
-            function dho(){
-                clearTimeout(to);
-                let x=new XMLHttpRequest();
-                x.overrideMimeType('application/json');
-                x.open('GET','/einst.json',true);
-                x.onreadystatechange=()=>{
-                    if(x.readyState==4&&x.status==200){
-                        sD(x.responseText);
-                    }};
-                x.send();
-            }
-            function sD(t){
-                od = JSON.parse(t);
-                eB('ma').checked=od.Master;
-                eB('md').checked=od.mDaten;
-                eB('ntip').value=od.NtzIp;
-                eB('wl').checked=od.Wlan;
-                eB('id').value=od.SSId;
-                eB('pw').value=od.PWD;
-                eB('mq').checked=od.Mqtt;
-                eB('mqip').value=od.MqttIp;
-                eB('mqtp').value=od.MqttTp;
-            }
-            dho();
-        </script>
-    </html>
+            <div class='div2'>
+                <form id=but2 class='db' action='einstAll' method='get'><button>allgemeine Einstellungen</button>
+                </form>
+            </div>
+            <div class='div2'>
+                <form id=but1 class='db' action='einstWl' method='get'><button>Wlan Einstellungen</button>
+                </form>
+            </div>
+            <div class='div2'>
+                <form id=but1 class='db' action='einstMq' method='get'><button>Mqtt Einstellungen</button>
+                </form>
+            </div>
+            <div class='div3'>
+                <form class='db' action='/' method='get'><button>Hauptfenster</button></form>
+                <div style='text-align:right;font-size:11px;'>
+                    <hr/><a href='' target='_blank' style='color:#aaa;'>Speicher2Mqtt 0.1 von Martin Dienert</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

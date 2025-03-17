@@ -1,6 +1,9 @@
 #include <ESP8266WebServer.h>
 #include "LittleFS.h"
 #include <Einstellungen.h>
+#include <Main.h>
+
+
 
 Einstellungen::Einstellungen(ESP8266WebServer* s){
   server = s;
@@ -59,7 +62,9 @@ void Einstellungen::alle_einst_laden(){
 void Einstellungen::setEinst(){
     if(server->hasArg("save")){
         if(server->arg("save") == "ei" && server->hasArg("ntip")){
+            boolean m = master;
             master = (server->hasArg("ma") && server->arg("ma") == "on")? true: false;
+            if(m != master) speicher.setMaster(master);
             mDaten = (server->hasArg("md") && server->arg("md") == "on")? true: false;
             ntzIp = server->arg("ntip");
             String daten[] = {(master)? "on": "off", (mDaten)? "on": "off", ntzIp};

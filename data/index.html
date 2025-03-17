@@ -3,111 +3,48 @@
     <head>
         <meta charset='utf-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
-        <style>
-            body{
-                text-align:center;
-                font-family:verdana,sans-serif;
-                background:#252525;
-            }
-            div{
-                text-align:center;
-                font-size: 1.1em;
-                display:inline-block;
-                color:#eaeaea;
-                width:340px;
-            }
-            div.div1{
-                text-align:left;
-                font-size: 1.0em;
-                font-weight:bold;
-                display:flex;
-                padding:5px;
-            }
-            .db{
-                display:block;
-            }
-            span.span1{
-                text-align:right;
-                font-weight:normal;
-                width:50px;
-                margin-left:auto;
-            }
-            span.span2{
-                width:30px;
-                text-align:center;
-                font-weight:normal;
-                margin-right:10px;
-            }
-            span.span3{
-                width:210px;
-                margin-right:13px;
-            }
-            button{
-                border:0;
-                border-radius:0.3rem;
-                background:#1fa3ec;
-                color:#faffff;
-                line-height:2.4rem;
-                font-size:1.2rem;
-                width:100%;
-                -webkit-transition-duration:0.4s;
-                transition-duration:0.4s;
-                cursor:pointer;
-            }
-            button:hover{
-                background:#0e70a4;
-            }
-            .bred{
-                background:#d43535;
-            }
-            .bred:hover{
-                background:#931f1f;
-            }
-            a{
-                color:#1fa3ec;
-                text-decoration:none;
-            }
-        </style>
         <title>Speicher M01 - Hauptmenü</title>
+        <link rel="stylesheet" href="einst.css">
     </head>
     <body>
-        <div>
+        <div class='div0'>
             <div>
                 <h2>Speicher M01</h2>
             </div>
             <div class='div1'>Spannung:<span class='span1' id='sp'>-1</span><span class='span2'>V</span>
-        </div>
-        <div class='div1'>Ladezustand (SOC):<span class='span1' id='lz'>-1</span><span class='span2'>%</span>
-        </div>
-        <div class='div1'>Strom Akku:<span class='span1' id='s1'>-1</span><span class='span2'>A</span>
-        </div>
-        <div class='div1' id='s2d'>Strom PV:<span class='span1' id='s2'>-1</span><span class='span2'>A</span>
-        </div>
-        <div class='div1' id='tpd'>Temperatur:<span class='span1' id='tp'>-1</span><span class='span2'>°C</span>
-        </div>
-        <div class='div1' id='dtd'>Datum:<span class='span1 span3' id='dt'>-1</span>
-        </div>
-        <div class='div1' id='ztd'>Zeit:<span class='span1 span3' id='zt'>-1</span>
-        </div>
-        <div id=but3d class='db'>
-        </div>
-        <p>
-            <form id=but2 class='db' action='md4' method='get'><button>mehr Daten</button>
-            </form>
-        </p>
-        <p>
-            <form id=but1 class='db' action='einst' method='get'><button>Einstellungen</button>
-            </form>
-        </p>
-        <p>
-            <form id=but0 class='db' action='rst' method='get' onsubmit='return confirm("Wirklich neustarten?");'>
-                <button name='rst' class='button bred'>Neustart</button>
-            </form>
-            <div style='text-align:right;font-size:11px;'>
-                <hr/><a href='' target='_blank' style='color:#aaa;'>Speicher2Mqtt 0.1 von Martin Dienert</a>
             </div>
-        </p>
-</body>
+            <div class='div1'>Ladezustand (SOC):<span class='span1' id='lz'>-1</span><span class='span2'>%</span>
+            </div>
+            <div class='div1'>Strom Akku:<span class='span1' id='s1'>-1</span><span class='span2'>A</span>
+            </div>
+            <div class='div1' id='s2d'>Strom PV:<span class='span1' id='s2'>-1</span><span class='span2'>A</span>
+            </div>
+            <div class='div1' id='tpd'>Temperatur:<span class='span1' id='tp'>-1</span><span class='span2'>°C</span>
+            </div>
+            <div class='div1' id='dtd'>Datum:<span class='span1 span3' id='dt'>-1</span>
+            </div>
+            <div class='div1' id='ztd'>Zeit:<span class='span1 span3' id='zt'>-1</span>
+            </div>
+            <div class='div2'>
+            </div>
+            <div class='div2'>
+                <form id=but2 class='db' action='md4' method='get'><button>mehr Daten</button>
+                </form>
+            </div>
+            <div class='div2'>
+                <form id=but1 class='db' action='einst' method='get'><button>Einstellungen</button>
+                </form>
+            </div>
+            <div class='div3'>
+                <form id=but0 class='db' action='rst' method='get' onsubmit='return confirm("Wirklich neustarten?");'>
+                    <button name='rst' class='button bred'>Neustart</button>
+                </form>
+                <div style='text-align:right;font-size:11px;'>
+                    <hr/><a href='' target='_blank' style='color:#aaa;'>Speicher2Mqtt 0.1 von Martin Dienert</a>
+                </div>
+            </div>
+        </div>
+    </body>
     <script>
         let eB=s=>document.getElementById(s);
         let to;

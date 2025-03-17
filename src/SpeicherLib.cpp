@@ -1,3 +1,4 @@
+#include <time.h>
 #include <Main.h>
 #include <SpeicherLib.h>
 
@@ -47,14 +48,27 @@ void Speicher::sendeTel(int t){
     tele = t;
 }
 
+void Speicher::setMaster(boolean m){
+    if(m) master();
+    else startTele = 0;
+}
+
 void Speicher::master(){
-    if(startTele < 6){
-        sendeTel(startTele);
-        timer.in(warteZeiten[startTele], masterTimer);
-        startTele++;
-    }else{
-        sendeTel(0);
-        timer.in(warteZeiten[5], masterTimer);
+    if(einst.master){
+        if(startTele < 6){
+            sendeTel(startTele);
+            timer.in(warteZeiten[startTele], masterTimer);
+            startTele++;
+        }else{
+            sendeTel(0);
+            timer.in(warteZeiten[5], masterTimer);
+        }
+    }
+}
+
+void Speicher::zeit(){
+    if(einst.master && !apModus){
+        getZeit();
     }
 }
 
@@ -86,6 +100,8 @@ void Speicher::senden(){
         digitalWrite(D1, HIGH);
         delay(10);
         Serial.write(telegramme[tele], teleGroesse[tele]);
+//        Serial.print("Senden: ");
+//        Serial.println(tele);
         delay(5);
         digitalWrite(D1, LOW);
         tele = -1;
