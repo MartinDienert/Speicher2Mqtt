@@ -114,7 +114,7 @@ void sendeEinst(){
 
 void mehrdaten(){
   hauptseite();
-  speicher.sendeTel(6);
+  speicher.sendeTel(telMD);
 }
 
 void softreset(){
@@ -246,7 +246,7 @@ void setup(){
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(D1, LOW);
   Serial.setTimeout(40);
-  Serial.begin(115200);
+  Serial.begin(115200, SERIAL_8N1);
   if(LittleFS.begin()){
     einst.alle_einst_laden();
     setupWifi();

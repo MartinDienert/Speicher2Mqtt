@@ -108,14 +108,17 @@ void Speicher::senden(){
     }
 }
 
-boolean Speicher::pruefsumme(byte* bp, int l1, byte* bp2, int l2){
+byte Speicher::pruefsummeBer(byte* bp, int l1, byte* bp2, int l2){
     int pfsumme = 0;
     for(int i = 2; i < l1; i++)
         pfsumme += bp[i];
     for(int i = 0; i < l2 - 1; i++)
         pfsumme += bp2[i];
-    byte pfs = (byte)pfsumme - 1;
-    return bp2[l2 - 1] == pfs;
+    return (byte)pfsumme - 1;
+}
+
+boolean Speicher::pruefsumme(byte* bp, int l1, byte* bp2, int l2){
+    return bp2[l2 - 1] == pruefsummeBer(bp, l1, bp2, l2);
 }
 
 void Speicher::decodieren1(byte* bp){

@@ -42,12 +42,13 @@ class Speicher  // Class Declaration
         byte t3[7] = {0x55,0xAA,0,8,0,0,7};                             // Datensynchronisation
         byte t4[8] = {0x55,0xAA,0,3,0,1,3,6};                           // Status 3 (verbunden mit Router)
         byte t5[8] = {0x55,0xAA,0,3,0,1,4,7};                           // Status 4 (verbunden mit der Cloud)
-        byte t6[16] = {0x55,0xAA,0,0x34,0,9,2,1,0,0,0,0,0,0,4,0};        // Zeit setzen (ab Byte 9: YY MM DD HH MM SS)
+        byte t6[16] = {0x55,0xAA,0,0x34,0,9,2,1,0,0,0,0,0,0,0,0};        // Zeit setzen (ab Byte 9: YY MM DD HH MM SS)
         byte t7[16] = {0x55,0xAA,0,6,0,9,1,0,0,5,1,1,1,1,1,0x19};       // mehr Daten (App aktiv)
         byte* telegramme[8] = {t0,t1,t2,t3,t4,t5,t6,t7};
         byte teleGroesse[8] = {7,7,7,7,8,8,16,16};
         int warteZeiten[6] = {20,20,1400,50,600,13000};
         void senden();
+        byte pruefsummeBer(byte*, int, byte*, int);
         boolean pruefsumme(byte*, int, byte*, int);
         void decodieren1(byte*);
         void decodieren2(byte*);
