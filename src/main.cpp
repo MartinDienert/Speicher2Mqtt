@@ -117,6 +117,42 @@ void mehrdaten(){
   speicher.sendeTel(telMD);
 }
 
+void befehle(){
+  boolean b = false;
+  if(server.hasArg("bef")){
+    if(server.arg("bef") == "lad"){
+      speicher.sendeTel(telLa, true);
+      b = true;
+    }else if(server.arg("bef") == "ent"){
+      speicher.sendeTel(telEl, true);
+      b = true;
+    }else if(server.arg("bef") == "spa"){
+      speicher.sendeTel(telSa);
+      b = true;
+    }else if(server.arg("bef") == "laden"){
+        speicher.sendeTel(telLa, true);
+    }else if(server.arg("bef") == "entladen"){
+      speicher.sendeTel(telEl, true);
+    }else if(server.arg("bef") == "speicher_aus"){
+      speicher.sendeTel(telSa);
+    }else if(server.arg("bef") == "laden_aus"){
+      speicher.sendeTel(telLa);
+    }else if(server.arg("bef") == "laden_ein"){
+      speicher.sendeTel(telLa + 1);
+    }else if(server.arg("bef") == "entladen_aus"){
+      speicher.sendeTel(telEl);
+    }else if(server.arg("bef") == "entladen_ein"){
+      speicher.sendeTel(telEl + 1);
+    }else if(server.arg("bef") == "mehr_daten"){
+      speicher.sendeTel(telMD);
+    }
+  }
+  if(b)
+    dateiSenden("/index.html");
+  else
+    server.send(200, "text/html", "Ok");
+}
+
 void softreset(){
   server.send(200, "text/html", "Restart_Ok");
   delay(500);
@@ -134,17 +170,38 @@ void setupWS(){
   server.on("/daten.json", sendeDaten);
   server.on("/einst.json", sendeEinst);
   server.on("/md4", mehrdaten);
+  server.on("/befehle", befehle);
   server.on("/rst", softreset);
   server.begin();
 }
 
 // Mqtt Client
-//void callback(char* topic, byte* payload, unsigned int length){
-//}
+void callback(char* topic, byte* payload, unsigned int length){
+  if(strcmp(topic, (einst.mqttTp + "/Befehl").c_str()) == 0){
+    char pl[length + 1] = {'\0'};
+    memcpy(pl, payload, length);
+    if(strcmp(pl, "laden") == 0){
+      speicher.sendeTel(telLa, true);
+    }else if(strcmp(pl, "entladen") == 0){
+      speicher.sendeTel(telEl, true);
+    }else if(strcmp(pl, "speicher_aus") == 0){
+      speicher.sendeTel(telSa);
+    }else if(strcmp(pl, "laden_aus") == 0){
+      speicher.sendeTel(telLa);
+    }else if(strcmp(pl, "laden_ein") == 0){
+      speicher.sendeTel(telLa + 1);
+    }else if(strcmp(pl, "entladen_aus") == 0){
+      speicher.sendeTel(telEl);
+    }else if(strcmp(pl, "entladen_ein") == 0){
+      speicher.sendeTel(telEl + 1);
+    }
+  }
+}
 
 void setupMqtt(){
   mqttClient.setServer(einst.mqttIp.c_str(), 1883); // Mqtt Server Ip
-//  mqttClient.setCallback(callback);
+  mqttClient.setCallback(callback);
+  reconnectMqtt();
 }
 
 void reconnectMqtt(){
@@ -154,7 +211,7 @@ void reconnectMqtt(){
       String clientId = "ESP8266Client-";
       clientId += String(random(0xffff), HEX);
       if(mqttClient.connect(clientId.c_str())){
-  //      mqttClient.subscribe("inTopic");
+        mqttClient.subscribe((einst.mqttTp + "/Befehl").c_str());
       }else{
         delay(500);
       }
@@ -270,6 +327,7 @@ void loop(){
   speicher.run();
   yield();
   server.handleClient();
+  mqttClient.loop();
   digitalWrite(LED_BUILTIN,HIGH);     // LED ist in der Pause aus
   delay(300);  
 }

@@ -25,7 +25,21 @@
             </div>
             <div class='div1' id='ztd'>Zeit:<span class='span1 span3' id='zt'>-1</span>
             </div>
+            <div class='div1'>Laden:<span class='span1 span3' id='la'>-1</span>
+            </div>
+            <div class='div1'>Entladen:<span class='span1 span3' id='el'>-1</span>
+            </div>
             <div class='div2'>
+            </div>
+            <div class='div4'>
+                <form id=but2 action='befehle' method='get'><button class="zw1" name="bef" value="lad">Laden</button>
+                </form>
+                <form id=but2 action='befehle' method='get'><button class="zw2" name="bef" value="ent">Entladen</button>
+                </form>
+            </div>
+            <div class='div2'>
+                <form id=but2 class='db' action='befehle' method='get'><button name="bef" value="spa">Speicher aus</button>
+                </form>
             </div>
             <div class='div2'>
                 <form id=but2 class='db' action='md4' method='get'><button>mehr Daten</button>
@@ -87,6 +101,8 @@
                 eB('ztd').style.display='none';
             else
                 eB('ztd').style.display='flex';
+            eB('la').innerHTML=od.Laden;
+            eB('el').innerHTML=od.Entladen;
         }
         dho();
     </script>

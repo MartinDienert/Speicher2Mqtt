@@ -19,8 +19,11 @@ void Daten::genJson(){
     }
     json += ",\"Datum\":" + ("\"" + datum + "\"");
     json += ",\"Zeit\":" + ("\"" + zeit + "\"");
+    String s = (laden)? "ein": "aus";
+    json += ",\"Laden\":" + ("\"" + s + "\"");
+    s = (entladen)? "ein": "aus";
+    json += ",\"Entladen\":" + ("\"" + s + "\"");
     json += "}";
-    typ = 0;
 }
 
 void Daten::setDaten(byte t, float s, int so, float sa){
@@ -40,12 +43,43 @@ void Daten::setDaten(byte t, float s, int so, float sa, float sp, int tp){
     setDaten(t, s, so, sa);
 }
 
+void Daten::setLaden(boolean l){
+    laden = l;
+    genJson();
+}
+
+void Daten::setEntladen(boolean l){
+    entladen = l;
+    genJson();
+}
+
+boolean Daten::getLaden(){
+    return laden;
+}
+
+boolean Daten::getEntladen(){
+    return entladen;
+}
+
 Speicher::Speicher(Daten* d){
     daten = d;
 }
 
-void Speicher::sendeTel(int t){
+void Speicher::sendeTel(int t, boolean to){
+    if(to){
+        if(t == telLa){
+            if(!daten->getLaden())
+                t++;
+        }else if(t == telEl){
+            if(!daten->getEntladen())
+                t++;
+        }
+    }
     tele = t;
+}
+
+void Speicher::sendeTel(int t){
+    sendeTel(t, false);
 }
 
 void Speicher::setMaster(boolean m){
@@ -81,13 +115,19 @@ void Speicher::run(){
             l = bp[5];
             byte bp2[l + 1];
             l = Serial.readBytes(bp2, l + 1);
-            if(l == 156){
-                if(pruefsumme(bp, 6, bp2, 156))
-                    decodieren1(bp2);
-            }
-            if(l == 153){
-                if(pruefsumme(bp, 6, bp2, 153))
-                    decodieren2(bp2);
+            if(bp[3] == 0x07){
+                if(l == 156){
+                    if(pruefsumme(bp, 6, bp2, 156))
+                        decodieren1(bp2);
+                }
+                if(l == 153){
+                    if(pruefsumme(bp, 6, bp2, 153))
+                        decodieren2(bp2);
+                }
+                if(l == 6){
+                    if(pruefsumme(bp, 6, bp2, 6))
+                        decodieren3(bp2);
+                }
             }
         }
         l = Serial.readBytes(bp, 6);
@@ -128,4 +168,11 @@ void Speicher::decodieren1(byte* bp){
 void Speicher::decodieren2(byte* bp){
     daten->setDaten(2, (float)((sint16)(bp[123] * 256 + bp[124])) / 10, bp[122],(float)((sint16)(bp[125] * 256 + bp[126])) / 10,
                        (float)((sint16)(bp[150] * 256 + bp[151])) / 10, bp[136]);
+}
+
+void Speicher::decodieren3(byte* bp){
+    if(bp[0] == 0x65)
+        daten->setLaden(bp[4] == 1);
+    else if(bp[0] == 0x66)
+        daten->setEntladen(bp[4] == 1);
 }

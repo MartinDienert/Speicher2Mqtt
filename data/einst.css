@@ -21,6 +21,10 @@ div.div2{
 div.div3{
     padding-top:20px;
 }
+div.div4{
+    padding:7px 0px 7px 0px;
+    display:inline-flex;
+}
 .db{
     display:block;
 }
@@ -69,6 +73,13 @@ button{
     }
 button:hover{
     background:#0e70a4;
+}
+button.zw1{
+    width:160px;
+    margin-right: 20px;
+}
+button.zw2{
+    width:160px;
 }
 .bred{
     background:#d43535;
