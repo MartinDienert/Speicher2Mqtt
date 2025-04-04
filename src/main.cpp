@@ -25,6 +25,33 @@ Einstellungen einst = Einstellungen(&server);
 Daten daten = Daten();
 Speicher speicher = Speicher(&daten);
 
+// Log -------------------------------------------------
+const uint16 ll = 1000;                   // Loglänge
+uint16 pos = 0;                           // Position erstes freies Zeichen
+char log1[ll] = "";
+
+void addLog(char *lo){
+  char* d = getDatumCStr();
+  uint16 ld = strlen(d);
+  char* z = getZeitCStr();
+  uint16 lz = strlen(z);
+  uint16 le = strlen(lo);
+  uint16 lg = le + ld + lz + 4;
+  if(pos + lg < ll){
+    strcat(log1, d);
+    strcat(log1, " ");
+    strcat(log1, z);
+    strcat(log1, " ");
+    strcat(log1, lo);
+    strcat(log1, "\r\n");
+    pos += lg;
+  }
+}
+
+char* getLog(){
+  return log1;
+}
+
 // Wifi Client -----------------------------------------
 boolean apModus = false;
 
@@ -159,6 +186,10 @@ void softreset(){
   ESP.restart();
 }
 
+void logdaten(){
+  server.send(200, "text/plain", getLog());
+}
+
 void setupWS(){
   server.onNotFound(fehlerseite);
   server.on("/", hauptseite);
@@ -172,6 +203,7 @@ void setupWS(){
   server.on("/md4", mehrdaten);
   server.on("/befehle", befehle);
   server.on("/rst", softreset);
+  server.on("/log", logdaten);
   server.begin();
 }
 
@@ -258,6 +290,16 @@ String getDatumStr(){
   return "";
 }
 
+char* getDatumCStr(){
+  if(!apModus){
+    getZeit();
+    char d[11];
+    sprintf(d, "%.2d.%.2d.%.4d", dat.tm_mday, dat.tm_mon + 1, dat.tm_year + 1900);
+    return strdup(d);
+  }
+  return strdup("");
+}
+
 String getZeitStr(){
   if(!apModus){
     char z[9];
@@ -265,6 +307,15 @@ String getZeitStr(){
     return (String)z;
   }
   return "";
+}
+
+char* getZeitCStr(){
+  if(!apModus){
+    char z[9];
+    sprintf(z, "%.2d:%.2d:%.2d", dat.tm_hour, dat.tm_min, dat.tm_sec);
+    return strdup(z);
+  }
+  return strdup("");
 }
 
 // Arduino-Timer
@@ -287,6 +338,12 @@ bool masterTimer(void *){
 
 bool zeitTimer(void *){
   speicher.zeit();
+  return true;
+}
+
+bool teleTimer(void *a){
+  int i = (int)a;
+  speicher.sendeTel(i & 0x0FF, (i & 0x100) == 0x100);
   return true;
 }
 

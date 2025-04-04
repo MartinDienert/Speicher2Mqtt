@@ -66,6 +66,12 @@ Speicher::Speicher(Daten* d){
 }
 
 void Speicher::sendeTel(int t, boolean to){
+    if(tele != -1){                                 // das Telegramm wurde noch nicht gesendet
+        if(to)
+            t += 0x100;
+        timer.in(1000, teleTimer, (void *)t);       // Telegramm in 1 Sekunde noch einmal senden
+        return;
+    }
     if(to){
         if(t == telLa){
             if(!daten->getLaden())
@@ -95,6 +101,7 @@ void Speicher::master(){
             startTele++;
         }else{
             sendeTel(0);
+            totmanRun();
             timer.in(warteZeiten[5], masterTimer);
         }
     }
@@ -119,6 +126,7 @@ void Speicher::run(){
                 if(l == 156){
                     if(pruefsumme(bp, 6, bp2, 156))
                         decodieren1(bp2);
+                    totmanReset();
                 }
                 if(l == 153){
                     if(pruefsumme(bp, 6, bp2, 153))
@@ -175,4 +183,20 @@ void Speicher::decodieren3(byte* bp){
         daten->setLaden(bp[4] == 1);
     else if(bp[0] == 0x66)
         daten->setEntladen(bp[4] == 1);
+}
+
+void Speicher::totmanReset(){
+    if(einst.master){
+        totman = millis();
+    }
+}
+
+void Speicher::totmanRun(){
+    if(totman == 0)
+        return;
+    if(millis() - totman > totmanZeit * 1000){
+        startTele = 0;
+        totman = 0;
+        addLog("Verbindung resettet.");
+    }
 }

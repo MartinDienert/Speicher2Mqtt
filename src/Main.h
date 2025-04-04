@@ -20,7 +20,11 @@ void mqttPub();
 void getZeit();
 String getDatumStr();
 String getZeitStr();
+char* getDatumCStr();
+char* getZeitCStr();
 bool masterTimer(void *);
 bool zeitTimer(void *);
+bool teleTimer(void *);
+void addLog(char *);
 
 #endif

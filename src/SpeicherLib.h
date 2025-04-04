@@ -2,6 +2,12 @@
 #define SPEICHER_LIB_H_
 #include <Arduino.h>
 
+const int telMD = 7;                // Telegramm mehr Daten im Array auf Position 7
+const int telLa = 8;                // Telegramm Laden aus
+const int telEl = 10;               // Telegramm Entladen aus
+const int telSa = 12;               // Telegramm Speicher aus
+const int totmanZeit = 330;         // Totmanzeit in Sekunden, (05:30 Minuten)
+
 class Daten  // Class Declaration
 {
     public:
@@ -38,9 +44,11 @@ class Speicher  // Class Declaration
         void master();
         void zeit();
         void setMaster(boolean);
+        void totmanRun();
                  
     private:
         Daten* daten;
+        unsigned long totman = 0;
         int tele = -1;
         int startTele = 0;
         byte t0[7] = {0x55,0xAA,0,0,0,0,0xFF};                          // Lebenszeichen
@@ -65,11 +73,7 @@ class Speicher  // Class Declaration
         void decodieren1(byte*);
         void decodieren2(byte*);
         void decodieren3(byte*);
+        void totmanReset();
 };
-
-const int telMD = 7;                // Telegramm mehr Daten im Array auf Position 7
-const int telLa = 8;                // Telegramm Laden aus
-const int telEl = 10;               // Telegramm Entladen aus
-const int telSa = 12;               // Telegramm Speicher aus
 
 #endif
