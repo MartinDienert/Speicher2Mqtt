@@ -272,12 +272,14 @@ void setupNTP(){
     configTime(MY_TZ, einst.ntzIp);
 }
 
-void getZeit(){
+boolean getZeit(){
   if(!apModus){
     time_t now;
     time(&now);
     localtime_r(&now, &dat);
+    return true;
   }
+  return false;
 }
 
 String getDatumStr(){
@@ -337,7 +339,7 @@ bool masterTimer(void *){
 }
 
 bool zeitTimer(void *){
-  speicher.zeit();
+  speicher.sendeZeit();
   return true;
 }
 

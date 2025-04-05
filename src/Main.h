@@ -17,7 +17,7 @@ extern tm dat;
 
 void reconnectMqtt();
 void mqttPub();
-void getZeit();
+boolean getZeit();
 String getDatumStr();
 String getZeitStr();
 char* getDatumCStr();

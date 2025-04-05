@@ -2,7 +2,8 @@
 #define SPEICHER_LIB_H_
 #include <Arduino.h>
 
-const int telMD = 7;                // Telegramm mehr Daten im Array auf Position 7
+const int telZe = 6;                // Telegramm Zeit, im Array auf Position 6
+const int telMD = 7;                // Telegramm mehr Daten, im Array auf Position 7
 const int telLa = 8;                // Telegramm Laden aus
 const int telEl = 10;               // Telegramm Entladen aus
 const int telSa = 12;               // Telegramm Speicher aus
@@ -42,7 +43,7 @@ class Speicher  // Class Declaration
         void sendeTel(int, boolean);
         void sendeTel(int);
         void master();
-        void zeit();
+        void sendeZeit();
         void setMaster(boolean);
         void totmanRun();
                  
@@ -68,6 +69,7 @@ class Speicher  // Class Declaration
         byte teleGroesse[13] = {7,7,7,7,8,8,16,16,12,12,12,12,12};
         int warteZeiten[6] = {20,20,1400,50,600,13000};
         void senden();
+        byte pruefsummeBer(byte*, int);
         byte pruefsummeBer(byte*, int, byte*, int);
         boolean pruefsumme(byte*, int, byte*, int);
         void decodieren1(byte*);

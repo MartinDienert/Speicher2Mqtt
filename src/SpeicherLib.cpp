@@ -88,6 +88,21 @@ void Speicher::sendeTel(int t){
     sendeTel(t, false);
 }
 
+void Speicher::sendeZeit(){
+    if(einst.master && getZeit()){
+        byte *t = telegramme[6];
+        t[8] = dat.tm_year - 100;
+        t[9] = dat.tm_mon + 1;
+        t[10] = dat.tm_mday;
+        t[11] = dat.tm_hour;
+        t[12] = dat.tm_min;
+        t[13] = dat.tm_sec;
+        t[14] = dat.tm_wday;
+        t[15] = pruefsummeBer(t, 16);
+        sendeTel(telZe);
+    }
+}
+
 void Speicher::setMaster(boolean m){
     if(m) master();
     else startTele = 0;
@@ -104,12 +119,8 @@ void Speicher::master(){
             totmanRun();
             timer.in(warteZeiten[5], masterTimer);
         }
-    }
-}
-
-void Speicher::zeit(){
-    if(einst.master && !apModus){
-        getZeit();
+        if(startTele == 5)
+            timer.in(15000, zeitTimer);
     }
 }
 
@@ -162,6 +173,13 @@ byte Speicher::pruefsummeBer(byte* bp, int l1, byte* bp2, int l2){
         pfsumme += bp[i];
     for(int i = 0; i < l2 - 1; i++)
         pfsumme += bp2[i];
+    return (byte)pfsumme - 1;
+}
+
+byte Speicher::pruefsummeBer(byte* bp, int l){
+    int pfsumme = 0;
+    for(int i = 2; i < l - 1; i++)
+        pfsumme += bp[i];
     return (byte)pfsumme - 1;
 }
 
