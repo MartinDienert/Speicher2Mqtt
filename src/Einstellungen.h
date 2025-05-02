@@ -17,7 +17,7 @@ class Einstellungen  // Class Declaration
         boolean mqtt = false;
         String mqttIp = "";
         String mqttTp = "";
-        String json = "";
+        char json[200] = {'\0'};
         void genJson();
         void alle_einst_laden();
         void setEinst();

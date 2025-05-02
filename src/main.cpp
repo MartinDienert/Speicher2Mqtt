@@ -4,7 +4,6 @@
 #include <ESP8266WebServer.h>
 #include <PubSubClient.h>
 #include <time.h>
-#include <arduino-timer.h>
 #include <Main.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
@@ -19,28 +18,26 @@ IPAddress subnet(255,255,255,0);
 ESP8266WebServer server(80);
 WiFiClient wifiClient;
 PubSubClient mqttClient = PubSubClient(wifiClient);
-//auto timer = timer_create_default();
-Timer<> timer;
+Speicher speicher = Speicher();
 Einstellungen einst = Einstellungen(&server);
-Daten daten = Daten();
-Speicher speicher = Speicher(&daten);
 
 // Log -------------------------------------------------
 const uint16 ll = 1000;                   // Loglänge
 uint16 pos = 0;                           // Position erstes freies Zeichen
-char log1[ll] = "";
+char log1[ll] = {'\0'};
 
-void addLog(char *lo){
-  char* d = getDatumCStr();
-  uint16 ld = strlen(d);
-  char* z = getZeitCStr();
-  uint16 lz = strlen(z);
+void addLog(const char *lo){
+  char datum[36];
+  char zeit[36];
+  getDatumZeitStr(datum, zeit);
+  uint16 ld = strlen(datum);
+  uint16 lz = strlen(zeit);
   uint16 le = strlen(lo);
   uint16 lg = le + ld + lz + 4;
   if(pos + lg < ll){
-    strcat(log1, d);
+    strcat(log1, datum);
     strcat(log1, " ");
-    strcat(log1, z);
+    strcat(log1, zeit);
     strcat(log1, " ");
     strcat(log1, lo);
     strcat(log1, "\r\n");
@@ -50,6 +47,32 @@ void addLog(char *lo){
 
 char* getLog(){
   return log1;
+}
+
+// Json -----------------------------------------
+char json[200] = {'\0'};
+
+void generiereJson(Daten daten){
+  char datum[36];
+  char zeit[36];
+  getDatumZeitStr(datum, zeit);
+  sprintf(json, "{\"Spannung\":%.1f,\"Ladezustand\":%d,\"StromAkku\":%.1f,\"Typ\":%d",
+      daten.spannung, daten.soc, daten.stromakku, daten.typ);
+  char s[150] = {'\0'};
+  if(daten.typ == 2){
+      sprintf(s, ",\"StromPV\":%.1f,\"Temperatur\":%d", daten.strompv, daten.temperatur);
+  }else{
+      strcat(s, ",\"StromPV\":0,\"Temperatur\":0");
+  }
+  strcat(json, s);
+  sprintf(s, ",\"Datum\":\"%s\",\"Zeit\":\"%s\",\"Laden\":%s,\"Entladen\":%s",
+      datum, zeit, (daten.laden)? "\"ein\"": "\"aus\"", (daten.entladen)? "\"ein\"": "\"aus\"");
+  strcat(json, s);
+  strcat(json, "}");
+}
+
+char* getJson(){
+  return json;
 }
 
 // Wifi Client -----------------------------------------
@@ -85,7 +108,7 @@ void setupAP(){
 }
 
 // Webserver -------------------------------------------
-void dateiSenden(String dn, String typ = "text/html"){
+void dateiSenden(const char *dn, const char *typ = "text/html"){
   File datei = LittleFS.open(dn, "r");
   if(!datei){
     server.send(404, "text/plain", "Datei nicht gefunden.");
@@ -93,7 +116,6 @@ void dateiSenden(String dn, String typ = "text/html"){
   }
   server.streamFile(datei, typ);
   datei.close();
-
 }
 
 void fehlerseite(){
@@ -105,13 +127,7 @@ void hauptseite(){
 }
 
 void einstellungsmenue(){
-  boolean master_alt = einst.master;
   einst.setEinst();
-  if(!master_alt && einst.master){
-    // Mastermodus einschalten
-  }else if(master_alt && !einst.master){
-    // Mastermodus ausschalten
-  }
   dateiSenden("/einst.html");
 }
 
@@ -132,7 +148,7 @@ void einstellungCSS(){
 }
 
 void sendeDaten(){
-  server.send(200, "application/json", daten.json);
+  server.send(200, "application/json", getJson());
 }
 
 void sendeEinst(){
@@ -147,30 +163,30 @@ void mehrdaten(){
 void befehle(){
   boolean b = false;
   if(server.hasArg("bef")){
-    if(server.arg("bef") == "lad"){
+    if(server.arg("bef").equals("lad")){
       speicher.sendeTel(telLa, true);
       b = true;
-    }else if(server.arg("bef") == "ent"){
+    }else if(server.arg("bef").equals("ent")){
       speicher.sendeTel(telEl, true);
       b = true;
-    }else if(server.arg("bef") == "spa"){
+    }else if(server.arg("bef").equals("spa")){
       speicher.sendeTel(telSa);
       b = true;
-    }else if(server.arg("bef") == "laden"){
+    }else if(server.arg("bef").equals("laden")){
         speicher.sendeTel(telLa, true);
-    }else if(server.arg("bef") == "entladen"){
+    }else if(server.arg("bef").equals("entladen")){
       speicher.sendeTel(telEl, true);
-    }else if(server.arg("bef") == "speicher_aus"){
+    }else if(server.arg("bef").equals("speicher_aus")){
       speicher.sendeTel(telSa);
-    }else if(server.arg("bef") == "laden_aus"){
+    }else if(server.arg("bef").equals("laden_aus")){
       speicher.sendeTel(telLa);
-    }else if(server.arg("bef") == "laden_ein"){
+    }else if(server.arg("bef").equals("laden_ein")){
       speicher.sendeTel(telLa + 1);
-    }else if(server.arg("bef") == "entladen_aus"){
+    }else if(server.arg("bef").equals("entladen_aus")){
       speicher.sendeTel(telEl);
-    }else if(server.arg("bef") == "entladen_ein"){
+    }else if(server.arg("bef").equals("entladen_ein")){
       speicher.sendeTel(telEl + 1);
-    }else if(server.arg("bef") == "mehr_daten"){
+    }else if(server.arg("bef").equals("mehr_daten")){
       speicher.sendeTel(telMD);
     }
   }
@@ -207,9 +223,10 @@ void setupWS(){
   server.begin();
 }
 
-// Mqtt Client
+// Mqtt Client -------------------------------------------
 void callback(char* topic, byte* payload, unsigned int length){
-  if(strcmp(topic, (einst.mqttTp + "/Befehl").c_str()) == 0){
+  int i = strlen(einst.mqttTp.c_str());
+  if(strncmp(topic, einst.mqttTp.c_str(), i) == 0 && strcmp(topic + i, "/Befehl") == 0){
     char pl[length + 1] = {'\0'};
     memcpy(pl, payload, length);
     if(strcmp(pl, "laden") == 0){
@@ -231,18 +248,18 @@ void callback(char* topic, byte* payload, unsigned int length){
 }
 
 void setupMqtt(){
-  mqttClient.setServer(einst.mqttIp.c_str(), 1883); // Mqtt Server Ip
   mqttClient.setCallback(callback);
   reconnectMqtt();
 }
 
 void reconnectMqtt(){
   if(!apModus){
+    mqttClient.setServer(einst.mqttIp.c_str(), 1883);       // Mqtt Server Ip
     int i = 0;
     while(i < 2 && !mqttClient.connected()){
-      String clientId = "ESP8266Client-";
-      clientId += String(random(0xffff), HEX);
-      if(mqttClient.connect(clientId.c_str())){
+      char id[19] = "ESP8266Client-";
+      ltoa(random(0xffff), id + 14, HEX);
+      if(mqttClient.connect(id)){
         mqttClient.subscribe((einst.mqttTp + "/Befehl").c_str());
       }else{
         delay(500);
@@ -258,105 +275,121 @@ void mqttPub(){
       reconnectMqtt();
     }
     if(mqttClient.connected()){
-      mqttClient.publish((einst.mqttTp + "/Daten").c_str(), daten.json.c_str());
+      mqttClient.publish((einst.mqttTp + "/Daten").c_str(), getJson());
     }
   }
 }
 
-// NTP Zeitserver
+// NTP Zeitserver -------------------------------------------
 #define MY_TZ "CET-1CEST,M3.5.0/02,M10.5.0/03"
 tm dat;
 
 void setupNTP(){
-  if(!apModus)
+  if(!apModus){
     configTime(MY_TZ, einst.ntzIp);
+    speicher.callbackGetDatumZeit(getDatumZeit);
+  }
 }
 
-boolean getZeit(){
+void getZeit(){
   if(!apModus){
     time_t now;
     time(&now);
     localtime_r(&now, &dat);
-    return true;
   }
-  return false;
 }
 
-String getDatumStr(){
-  if(!apModus){
-    getZeit();
-    char d[11];
-    sprintf(d, "%.2d.%.2d.%.4d", dat.tm_mday, dat.tm_mon + 1, dat.tm_year + 1900);
-    return (String)d;
+void getDatumZeit(Zeit *z){
+  getZeit();
+  z->jahr     = dat.tm_year - 100;
+  z->monat    = dat.tm_mon + 1;
+  z->tag      = dat.tm_mday;
+  z->stunde   = dat.tm_hour;
+  z->minute   = dat.tm_min;
+  z->sekunde  = dat.tm_sec;
+  z->tagWoche = dat.tm_wday;
+}
+
+void getDatumZeitStr(char *datum, char *zeit){
+  getZeit();
+  sprintf(datum, "%02d.%02d.%04d", dat.tm_mday, dat.tm_mon + 1, dat.tm_year + 1900);
+  sprintf(zeit, "%02d:%02d:%02d", dat.tm_hour, dat.tm_min, dat.tm_sec);
+}
+
+// Timer -------------------------------------------
+unsigned long mqttPubZeit = 0;
+const unsigned long mqttPubInterval = 30000;              // 30 Sekunden
+unsigned long mDatenZeit = 0;
+const unsigned long mDatenInterval = 240000;              // 4 Minuten
+unsigned long testZeit = 0;
+unsigned long testInterval = 30000;
+boolean testB = false;
+int testI = 0;
+
+void timerRun(){
+  unsigned long zeit = millis();
+  if(mqttPubZeit > 0 && zeit - mqttPubZeit > mqttPubInterval){
+    mqttPubZeit = zeit;
+    if(mqttPubZeit == 0) mqttPubZeit = 1;
+    if(einst.mqtt)
+      mqttPub();
   }
-  return "";
-}
-
-char* getDatumCStr(){
-  if(!apModus){
-    getZeit();
-    char d[11];
-    sprintf(d, "%.2d.%.2d.%.4d", dat.tm_mday, dat.tm_mon + 1, dat.tm_year + 1900);
-    return strdup(d);
+  if(testZeit > 0 && zeit - testZeit > testInterval){
+    testZeit = zeit;
+    if(testZeit == 0) testZeit = 1;
+    char t[] = "SpeicherM02/Befehl";
+    byte p[5] = {'l','a','d','e','n'};
+    callback(t, p, 5);
   }
-  return strdup("");
 }
 
-String getZeitStr(){
-  if(!apModus){
-    char z[9];
-    sprintf(z, "%.2d:%.2d:%.2d", dat.tm_hour, dat.tm_min, dat.tm_sec);
-    return (String)z;
-  }
-  return "";
+void setMqttPubTimer(){
+  mqttPubZeit = millis();
+  if(mqttPubZeit == 0) mqttPubZeit = 1;
 }
 
-char* getZeitCStr(){
-  if(!apModus){
-    char z[9];
-    sprintf(z, "%.2d:%.2d:%.2d", dat.tm_hour, dat.tm_min, dat.tm_sec);
-    return strdup(z);
-  }
-  return strdup("");
-}
-
-// Arduino-Timer
-bool mqttPubTimer(void *){
-  if(einst.mqtt)
-    mqttPub();
-  return true;
-}
-
-bool mDatenTimer(void *){
-  if(einst.mDaten)
-    speicher.sendeTel(telMD);
-  return true;
-}
-
-bool masterTimer(void *){
-  speicher.master();
-  return true;
-}
-
-bool zeitTimer(void *){
-  speicher.sendeZeit();
-  return true;
-}
-
-bool teleTimer(void *a){
-  int i = (int)a;
-  speicher.sendeTel(i & 0x0FF, (i & 0x100) == 0x100);
-  return true;
+void setTestTimer(){
+  testZeit = millis();
+  if(testZeit == 0) testZeit = 1;
 }
 
 void setupTimer(){
-  timer.every(30000, mqttPubTimer);
-  timer.every(240000, mDatenTimer);
-  if(einst.master)
-    timer.in(5000, masterTimer);
+  setMqttPubTimer();
+//  setTestTimer();
 }
 
-// Arduino
+// Speicher -------------------------------------------
+int lesen(byte *b, int l){
+  return Serial.readBytes(b, l);
+}
+
+void schreiben(byte *b, int l){
+  digitalWrite(D1, HIGH);
+  delay(10);
+  Serial.write(b, l);
+  delay(5);
+  digitalWrite(D1, LOW);
+}
+
+void neueDaten(){
+  generiereJson(speicher.getDaten());
+  mqttPub();
+}
+
+void logEintrag(const char *s){
+  addLog(s);
+}
+
+void setupSpeicher(){
+  speicher.callbackLesen(lesen);
+  speicher.callbackSchreiben(schreiben);
+  speicher.callbackNeueDaten(neueDaten);
+  speicher.callbackLogeintrag(logEintrag);
+  if(einst.master) speicher.startMaster(5000);
+  if(einst.mDaten) speicher.startMDaten(30000);
+}
+
+// Arduino -------------------------------------------
 void setup(){
   pinMode(D1, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -372,6 +405,7 @@ void setup(){
   setupMqtt();
   setupNTP();
   setupTimer();
+  setupSpeicher();
   while(Serial.available()){          // Puffer leeren
     Serial.read();
     delay(5);
@@ -381,12 +415,14 @@ void setup(){
 
 void loop(){
   digitalWrite(LED_BUILTIN,LOW);      // LED leuchtet
-  timer.tick();
+  timerRun();
   yield();
   speicher.run();
   yield();
   server.handleClient();
+  yield();
   mqttClient.loop();
+  yield();
   digitalWrite(LED_BUILTIN,HIGH);     // LED ist in der Pause aus
   delay(300);  
 }
