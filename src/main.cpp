@@ -254,12 +254,17 @@ void setupMqtt(){
 
 void reconnectMqtt(){
   if(!apModus){
-    mqttClient.setServer(einst.mqttIp.c_str(), 1883);       // Mqtt Server Ip
+    mqttClient.setServer(einst.mqttIp.c_str(), einst.mqttPo.toInt());       // Mqtt Server Ip, Port
     int i = 0;
     while(i < 2 && !mqttClient.connected()){
       char id[19] = "ESP8266Client-";
       ltoa(random(0xffff), id + 14, HEX);
-      if(mqttClient.connect(id)){
+      boolean c = false;
+      if(einst.mqttBe != "" && einst.mqttPw != "")
+        mqttClient.connect(id, einst.mqttBe.c_str(), einst.mqttPw.c_str());
+      else
+        mqttClient.connect(id);
+      if(c){
         mqttClient.subscribe((einst.mqttTp + "/Befehl").c_str());
       }else{
         delay(500);
@@ -387,6 +392,7 @@ void setupSpeicher(){
   speicher.callbackLogeintrag(logEintrag);
   if(einst.master) speicher.startMaster(5000);
   if(einst.mDaten) speicher.startMDaten(30000);
+  generiereJson(speicher.getDaten());
 }
 
 // Arduino -------------------------------------------

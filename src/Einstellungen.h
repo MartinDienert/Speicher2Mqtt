@@ -16,8 +16,11 @@ class Einstellungen  // Class Declaration
         String pwd = "";
         boolean mqtt = false;
         String mqttIp = "";
+        String mqttPo = "";
+        String mqttBe = "";
+        String mqttPw = "";
         String mqttTp = "";
-        char json[200] = {'\0'};
+        char json[250] = {'\0'};
         void genJson();
         void alle_einst_laden();
         void setEinst();

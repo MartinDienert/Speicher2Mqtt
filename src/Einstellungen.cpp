@@ -35,12 +35,13 @@ boolean Einstellungen::einst_lesen(const char* dateiname, String daten[], int l)
 
 void Einstellungen::genJson(){
   sprintf(json, "{\"Master\":%d,\"mDaten\":%d,\"NtzIp\":\"%s\",\"Wlan\":%d,\"SSId\":\"%s\",\
-\"PWD\":\"%s\",\"Mqtt\":%d,\"MqttIp\":\"%s\",\"MqttTp\":\"%s\"}",
-    master, mDaten, ntzIp.c_str(), wlan, ssid.c_str(), pwd.c_str(), mqtt, mqttIp.c_str(), mqttTp.c_str());
+\"PWD\":\"%s\",\"Mqtt\":%d,\"MqttIp\":\"%s\",\"MqttPo\":\"%s\",\"MqttBe\":\"%s\",\"MqttPw\":\"%s\",\"MqttTp\":\"%s\"}",
+    master, mDaten, ntzIp.c_str(), wlan, ssid.c_str(), pwd.c_str(),
+    mqtt, mqttIp.c_str(), mqttPo.c_str(), mqttBe.c_str(), mqttPw.c_str(), mqttTp.c_str());
 }
 
 void Einstellungen::alle_einst_laden(){
-    String tmp[3];
+    String tmp[6];
     if(einst_lesen("einst", tmp, 3)){
         master = (tmp[0].equals("on"))? true: false;
         mDaten = (tmp[1].equals("on"))? true: false;
@@ -51,10 +52,13 @@ void Einstellungen::alle_einst_laden(){
         ssid = tmp[1];
         pwd = tmp[2];
     }
-    if(einst_lesen("mqtt", tmp, 3)){
+    if(einst_lesen("mqtt", tmp, 6)){
         mqtt = (tmp[0].equals("on"))? true: false;
         mqttIp = tmp[1];
-        mqttTp = tmp[2];
+        mqttPo = tmp[2];
+        mqttBe = tmp[3];
+        mqttPw = tmp[4];
+        mqttTp = tmp[5];
     }
     genJson();
 }
@@ -78,12 +82,15 @@ void Einstellungen::setEinst(){
               pwd = server->arg("pwd");
             String daten[] = {(wlan)? "on": "off", ssid, pwd};
             einst_speichern("wlan", daten, 3);
-        }else if(server->arg("save").equals("mq") && server->hasArg("mqip") && server->hasArg("mqtp")){
+        }else if(server->arg("save").equals("mq") && server->hasArg("mqip") && server->hasArg("mqpo") && server->hasArg("mqtp")){
             mqtt = (server->hasArg("mq") && server->arg("mq").equals("on"))? true: false;
             mqttIp = server->arg("mqip");
+            mqttPo = server->arg("mqpo");
+            (server->hasArg("mqbe"))? mqttBe = server->arg("mqbe"): mqttBe = "";
+            (server->hasArg("mqpw"))? mqttPw = server->arg("mqpw"): mqttPw = "";
             mqttTp = server->arg("mqtp");
-            String daten[] = {(mqtt)? "on": "off", mqttIp, mqttTp};
-            einst_speichern("mqtt", daten, 3);
+            String daten[] = {(mqtt)? "on": "off", mqttIp, mqttPo, mqttBe, mqttPw, mqttTp};
+            einst_speichern("mqtt", daten, 6);
         }
         genJson();
     }

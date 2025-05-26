@@ -25,6 +25,18 @@
                             <input id='mqip' placeholder='MQTT Server eingeben' name='mqip' value=''>
                         </div>
                         <div class='div2'>
+                            MQTT - Server Port<br>
+                            <input id='mqpo' placeholder='MQTT Server Port eingeben' name='mqpo' value=''>
+                        </div>
+                        <div class='div2'>
+                            MQTT - Benutzer<br>
+                            <input id='mqbe' placeholder='MQTT Benutzer eingeben' name='mqbe' value=''>
+                        </div>
+                        <div class='div2'>
+                            MQTT - Benutzer<br>
+                            <input id='mqpw' placeholder='MQTT Passwort eingeben' name='mqpw' value=''>
+                        </div>
+                        <div class='div2'>
                             MQTT - Topic<br>
                             <input id='mqtp' placeholder='Topic eingeben' name='mqtp' value=''>
                         </div>
@@ -57,6 +69,9 @@
                 od = JSON.parse(t);
                 eB('mq').checked=od.Mqtt;
                 eB('mqip').value=od.MqttIp;
+                eB('mqpo').value=od.MqttPo;
+                eB('mqbe').value=od.MqttBe;
+                eB('mqpw').value=od.MqttPw;
                 eB('mqtp').value=od.MqttTp;
             }
             dho();
