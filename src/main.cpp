@@ -24,7 +24,20 @@ Einstellungen einst = Einstellungen(&server);
 // Log -------------------------------------------------
 const uint16 ll = 1000;                   // Loglänge
 uint16 pos = 0;                           // Position erstes freies Zeichen
-char log1[ll] = {'\0'};
+char log1[ll + 1] = {'\0'};
+
+void logloeschen(int a){                  // a = benötigter Platz im Puffer, -1 = Puffer löschen, -2 = halben Puffer löschen
+  if(a == -1){
+      log1[0] = '\0';
+      pos = 0;
+  }else{
+      if(a == -2) a = ll / 2;
+      char* x = strstr(log1 + a, "\r\n") + 2;
+      log1[0] = '\0';
+      strcpy(log1, x);
+      pos = strlen(log1);
+  }
+}
 
 void addLog(const char *lo){
   char datum[36];
@@ -34,7 +47,9 @@ void addLog(const char *lo){
   uint16 lz = strlen(zeit);
   uint16 le = strlen(lo);
   uint16 lg = le + ld + lz + 4;
-  if(pos + lg < ll){
+  if(pos + lg > ll)
+    logloeschen(-2);                  // löscht die Hälfte des Puffers
+  if(pos + lg < ll + 1){
     strcat(log1, datum);
     strcat(log1, " ");
     strcat(log1, zeit);
@@ -261,9 +276,9 @@ void reconnectMqtt(){
       ltoa(random(0xffff), id + 14, HEX);
       boolean c = false;
       if(einst.mqttBe != "" && einst.mqttPw != "")
-        mqttClient.connect(id, einst.mqttBe.c_str(), einst.mqttPw.c_str());
+        c = mqttClient.connect(id, einst.mqttBe.c_str(), einst.mqttPw.c_str());
       else
-        mqttClient.connect(id);
+        c = mqttClient.connect(id);
       if(c){
         mqttClient.subscribe((einst.mqttTp + "/Befehl").c_str());
       }else{
