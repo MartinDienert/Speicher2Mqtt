@@ -7,6 +7,7 @@
 #include <Main.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
+#include <ElegantOTA.h>
 
 // allgemeine Einstellungen ----------------------------
 const char* ssidap = "AP-Speicher";
@@ -338,7 +339,7 @@ void getDatumZeitStr(char *datum, char *zeit){
 
 // Timer -------------------------------------------
 unsigned long mqttPubZeit = 0;
-const unsigned long mqttPubInterval = 30000;              // 30 Sekunden
+const unsigned long mqttPubInterval = 20000;              // 20 Sekunden
 unsigned long mDatenZeit = 0;
 const unsigned long mDatenInterval = 240000;              // 4 Minuten
 unsigned long testZeit = 0;
@@ -393,7 +394,7 @@ void schreiben(byte *b, int l){
 
 void neueDaten(){
   generiereJson(speicher.getDaten());
-  mqttPub();
+  // mqttPub();
 }
 
 void logEintrag(const char *s){
@@ -427,12 +428,12 @@ void setup(){
   setupNTP();
   setupTimer();
   setupSpeicher();
+  ElegantOTA.begin(&server);
   while(Serial.available()){          // Puffer leeren
     Serial.read();
     delay(5);
   }
 }
-
 
 void loop(){
   digitalWrite(LED_BUILTIN,LOW);      // LED leuchtet
@@ -443,6 +444,7 @@ void loop(){
   server.handleClient();
   yield();
   mqttClient.loop();
+  ElegantOTA.loop();
   yield();
   digitalWrite(LED_BUILTIN,HIGH);     // LED ist in der Pause aus
   delay(300);  
