@@ -25,6 +25,11 @@ div.div4{
     padding:7px 0px 7px 0px;
     display:inline-flex;
 }
+div.div5{
+    padding:7px 0px 7px 0px;
+    text-align:center;
+    color:red;
+}
 .db{
     display:block;
 }
@@ -70,7 +75,7 @@ button{
     -webkit-transition-duration:0.4s;
     transition-duration:0.4s;
     cursor:pointer;
-    }
+}
 button:hover{
     background:#0e70a4;
 }
@@ -96,4 +101,23 @@ button.zw2{
 a{
     color:#1fa3ec;
     text-decoration:none;
+}
+input[type="file"]{
+    display: none;
+}
+label.fu{
+    display:block;
+    border:0;
+    border-radius:0.3rem;
+    background:#e6e6e6;
+    color:#000000;
+    line-height:2.4rem;
+    font-size:1.2rem;
+    text-align:center;
+    -webkit-transition-duration:0.4s;
+    transition-duration:0.4s;
+    cursor:pointer;
+}
+label.fu:hover{
+    background:#bfbfbf;
 }

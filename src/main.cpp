@@ -7,6 +7,7 @@
 #include <Main.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
+#include <ESP8266HTTPUpdateServer.h>
 
 // allgemeine Einstellungen ----------------------------
 const char* ssidap = "AP-Speicher";
@@ -16,6 +17,7 @@ IPAddress subnet(255,255,255,0);
 
 // Objekte ---------------------------------------------
 ESP8266WebServer server(80);
+ESP8266HTTPUpdateServer httpUpdater;
 WiFiClient wifiClient;
 PubSubClient mqttClient = PubSubClient(wifiClient);
 Speicher speicher = Speicher();
@@ -158,6 +160,10 @@ void einstellungMq(){
   dateiSenden("/einstMq.html");
 }
 
+void einstellungOt(){
+  dateiSenden("/einstOt.html");
+}
+
 void einstellungCSS(){
   dateiSenden("/einst.css", "text/css");
 }
@@ -228,6 +234,7 @@ void setupWS(){
   server.on("/einstAll", einstellungAll);
   server.on("/einstWl", einstellungWl);
   server.on("/einstMq", einstellungMq);
+  server.on("/einstOt", einstellungOt);
   server.on("/einst.css", einstellungCSS);
   server.on("/daten.json", sendeDaten);
   server.on("/einst.json", sendeEinst);
@@ -410,6 +417,11 @@ void setupSpeicher(){
   generiereJson(speicher.getDaten());
 }
 
+// OTA Update ----------------------------------------
+void setupOta(){
+  httpUpdater.setup(&server);
+}
+
 // Arduino -------------------------------------------
 void setup(){
   pinMode(D1, OUTPUT);
@@ -427,6 +439,7 @@ void setup(){
   setupNTP();
   setupTimer();
   setupSpeicher();
+  setupOta();
   while(Serial.available()){          // Puffer leeren
     Serial.read();
     delay(5);
