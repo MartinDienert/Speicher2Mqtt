@@ -15,11 +15,13 @@ class Einstellungen  // Class Declaration
         String ssid = "";
         String pwd = "";
         boolean mqtt = false;
+        boolean mqttSp = true;
         String mqttIp = "";
         String mqttPo = "";
         String mqttBe = "";
         String mqttPw = "";
         String mqttTp = "";
+        String mqttIv = "30";
         char json[250] = {'\0'};
         void genJson();
         void alle_einst_laden();

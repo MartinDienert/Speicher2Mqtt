@@ -21,6 +21,10 @@
                             <input type="checkbox" id="mq" name="mq">
                         </div>
                         <div class='div2'>
+                            <label for="mqsp">spontan</label>
+                            <input type="checkbox" id="mqsp" name="mqsp">
+                        </div>
+                        <div class='div2'>
                             MQTT - Server<br>
                             <input id='mqip' placeholder='MQTT Server eingeben' name='mqip' value=''>
                         </div>
@@ -39,6 +43,10 @@
                         <div class='div2'>
                             MQTT - Topic<br>
                             <input id='mqtp' placeholder='Topic eingeben' name='mqtp' value=''>
+                        </div>
+                        <div class='div2'>
+                            MQTT - Intervall<br>
+                            <input id='mqiv' placeholder='Intervall eingeben' name='mqiv' value=''>
                         </div>
                         <div class='div3'>
                             <button name='save' value='mq' type='submit' class='button bgrn'>Speichern</button>
@@ -68,11 +76,13 @@
             function sD(t){
                 od = JSON.parse(t);
                 eB('mq').checked=od.Mqtt;
+                eB('mqsp').checked=od.MqttSp;
                 eB('mqip').value=od.MqttIp;
                 eB('mqpo').value=od.MqttPo;
                 eB('mqbe').value=od.MqttBe;
                 eB('mqpw').value=od.MqttPw;
                 eB('mqtp').value=od.MqttTp;
+                eB('mqiv').value=od.MqttIv;
             }
             dho();
         </script>

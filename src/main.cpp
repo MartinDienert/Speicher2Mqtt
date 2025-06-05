@@ -297,7 +297,7 @@ void reconnectMqtt(){
 }
 
 void mqttPub(){
-  if(einst.mqtt && !apModus){
+  if(!apModus){
     if(!mqttClient.connected()){
       reconnectMqtt();
     }
@@ -305,6 +305,12 @@ void mqttPub(){
       mqttClient.publish((einst.mqttTp + "/Daten").c_str(), getJson());
     }
   }
+//  addLog("Mqtt publish.");
+}
+
+void mqttPubSpontan(){
+  if(einst.mqtt && einst.mqttSp)
+    mqttPub();
 }
 
 // NTP Zeitserver -------------------------------------------
@@ -345,7 +351,7 @@ void getDatumZeitStr(char *datum, char *zeit){
 
 // Timer -------------------------------------------
 unsigned long mqttPubZeit = 0;
-const unsigned long mqttPubInterval = 30000;              // 30 Sekunden
+unsigned long mqttPubInterval = 30000;                    // 30 Sekunden
 unsigned long mDatenZeit = 0;
 const unsigned long mDatenInterval = 240000;              // 4 Minuten
 unsigned long testZeit = 0;
@@ -358,8 +364,7 @@ void timerRun(){
   if(mqttPubZeit > 0 && zeit - mqttPubZeit > mqttPubInterval){
     mqttPubZeit = zeit;
     if(mqttPubZeit == 0) mqttPubZeit = 1;
-    if(einst.mqtt)
-      mqttPub();
+    mqttPub();
   }
   if(testZeit > 0 && zeit - testZeit > testInterval){
     testZeit = zeit;
@@ -371,8 +376,15 @@ void timerRun(){
 }
 
 void setMqttPubTimer(){
-  mqttPubZeit = millis();
-  if(mqttPubZeit == 0) mqttPubZeit = 1;
+  if(einst.mqttIv != ""){
+    mqttPubInterval = einst.mqttIv.toInt() * 1000;
+  }
+  if(einst.mqtt && mqttPubInterval > 0){
+    mqttPubZeit = millis();
+    if(mqttPubZeit == 0) mqttPubZeit = 1;
+  }else{
+    mqttPubZeit = 0;
+  }
 }
 
 void setTestTimer(){
@@ -400,7 +412,7 @@ void schreiben(byte *b, int l){
 
 void neueDaten(){
   generiereJson(speicher.getDaten());
-  mqttPub();
+  mqttPubSpontan();
 }
 
 void logEintrag(const char *s){
@@ -444,6 +456,7 @@ void setup(){
     Serial.read();
     delay(5);
   }
+  addLog("Programm gestartet.");
 }
 
 

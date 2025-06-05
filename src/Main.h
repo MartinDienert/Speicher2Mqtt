@@ -7,8 +7,8 @@ extern Speicher speicher;
 extern tm dat;
 
 void reconnectMqtt();
-void getZeit();
 void getDatumZeit(Zeit *);
 void getDatumZeitStr(char *, char *);
+void setMqttPubTimer();
 
 #endif
