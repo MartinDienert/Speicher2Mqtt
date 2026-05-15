@@ -1,63 +1,107 @@
 body{
     text-align:center;
     font-family:verdana,sans-serif;
-    background:#252525;
+    background:#e7e7e7;
 }
-div.div0{
+div.hauptseite{
     text-align:center;
     font-size:1.1em;
     display:inline-block;
-    color:#eaeaea;
+    color:#000000;
     width:340px;
 }
-div.div1{
+div.imp{
+    text-align:right;
+    font-size:11px;
+}
+
+div.titel{
+    text-align:center;
+    font-weight:bold;
+    margin-bottom: 5px;
+}
+div.eintrag{
     font-weight:bold;
     display:flex;
     padding:5px;
 }
-div.div2{
+div.taste{
     padding:7px 0px 7px 0px;
 }
-div.div3{
+div.abstand{
     padding-top:20px;
 }
-div.div4{
-    padding:7px 0px 7px 0px;
+div.taste2fach{
     display:inline-flex;
 }
-div.div5{
+div.warnung{
     padding:7px 0px 7px 0px;
+    font-size:0.7em;
     text-align:center;
     color:red;
 }
-.db{
-    display:block;
-}
-span.span1{
-    text-align:right;
-    font-weight:normal;
-    width:50px;
-    margin-left:auto;
-}
-span.span2{
-    width:30px;
-    text-align:center;
-    font-weight:normal;
-}
-span.span3{
-    width:210px;
-    margin-right:13px;
-}
-fieldset{
-    background:#4f4f4f;
+div.field{
+    padding: 5px;
+    background:#dfdfdf;
+    border-style: solid;
+    border-color: #636363;
+    border-width: 2px;
+    border-radius: 5px;
     text-align:left;
 }
+div.fieldlabel{
+    display:block;
+    text-align:center;
+    margin-bottom: 5px;
+}
+div.flex{
+    display: flex;
+}
+form.db{
+    display:block;
+}
+span.wert1{
+    text-align:right;
+    font-weight:normal;
+    min-width: 50px;
+    margin-left:auto;
+}
+span.einheit1{
+    width:35px;
+    text-align:center;
+    font-weight:normal;
+    margin-left:5px;
+}
+span.einheit2{
+    width:50px;
+    text-align:left;
+    font-weight:normal;
+    margin-left:5px;
+}
+span.wert2{
+    margin-right:13px;
+}
+span.link{
+    text-align: right;
+    font-size: 80%;
+    margin: 2px 5px 0 auto;
+}
+fieldset{
+    background:#e7e7e7;
+    border-width: 4px;
+    border-radius: 5px;
+    text-align:left;
+}
+label{
+    margin-left: 5px;
+}
 input{
-    font-size:1.1em;
+    font-size:1em;
     box-sizing:border-box;
-    -webkit-box-sizing:border-box;
-    -moz-box-sizing:border-box;
-    background:#dddddd;
+    background:#f0f0f0;
+    border-style: solid;
+    border-radius: 0.3rem;
+    border-color: #bfbfbf;
     color:#000000;
     width:100%;
 }
@@ -65,7 +109,8 @@ input[type='checkbox']{
     width:auto;
 }
 button{
-    border:0;
+    border:1;
+    border-color: #005a8a;
     border-radius:0.3rem;
     background:#1fa3ec;
     color:#faffff;
@@ -77,29 +122,31 @@ button{
     cursor:pointer;
 }
 button:hover{
-    background:#0e70a4;
+    background:#005a8a;
 }
-button.zw1{
+button.button1{
     width:160px;
     margin-right: 20px;
 }
-button.zw2{
+button.button2{
     width:160px;
 }
 .bred{
     background:#d43535;
+    border-color: #850000;
 }
 .bred:hover{
-    background:#931f1f;
+    background:#850000;
 }
 .bgrn{
     background:#47c266;
+    border-color: #008822;
 }
 .bgrn:hover{
-    background:#478a58;
+    background:#008822;
 }
-a{
-    color:#1fa3ec;
+a.projekt{
+    color:#adadad;
     text-decoration:none;
 }
 input[type="file"]{
@@ -110,6 +157,9 @@ label.fu{
     border:0;
     border-radius:0.3rem;
     background:#e6e6e6;
+    border-style: solid;
+    border-color: #bfbfbf;
+    border-width: 2px;
     color:#000000;
     line-height:2.4rem;
     font-size:1.2rem;
@@ -120,4 +170,26 @@ label.fu{
 }
 label.fu:hover{
     background:#bfbfbf;
+}
+div.download{
+    border-width: 2px;
+    border-style: solid;
+    border-color: #008822;
+    border-radius:0.3rem;
+    background:#47c266;
+    color:#faffff;
+    line-height:2.4rem;
+    font-size:1.2rem;
+    -webkit-transition-duration:0.4s;
+    transition-duration:0.4s;
+}
+div.download:hover{
+    background-color: #008822;
+}
+a.download {
+    display: block;
+    color:#faffff;
+    text-decoration: none;
+    text-align: center;
+    cursor:pointer;
 }

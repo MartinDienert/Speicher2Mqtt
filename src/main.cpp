@@ -2,12 +2,12 @@
 #include "LittleFS.h"
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include <PubSubClient.h>
 #include <time.h>
 #include <Main.h>
 #include <Einstellungen.h>
 #include <SpeicherLib.h>
-#include <ESP8266HTTPUpdateServer.h>
 
 // allgemeine Einstellungen ----------------------------
 const char* ssidap = "AP-Speicher";
@@ -73,11 +73,16 @@ void generiereJson(Daten daten){
   char datum[36];
   char zeit[36];
   getDatumZeitStr(datum, zeit);
-  sprintf(json, "{\"Spannung\":%.1f,\"Ladezustand\":%d,\"StromAkku\":%.1f,\"Typ\":%d",
-      daten.spannung, daten.soc, daten.stromakku, daten.typ);
+  char sp[5] = {'\0'};
+  dtostrf(daten.spannung, 3, 1, sp);
+  char st[5] = {'\0'};
+  dtostrf(daten.stromakku, 3, 1, st);
+  sprintf(json, "{\"Spannung\":%s,\"Ladezustand\":%d,\"StromAkku\":%s,\"Typ\":%d",
+      sp, daten.soc, st, daten.typ);
   char s[150] = {'\0'};
   if(daten.typ == 2){
-      sprintf(s, ",\"StromPV\":%.1f,\"Temperatur\":%d", daten.strompv, daten.temperatur);
+      dtostrf(daten.strompv, 3, 1, st);
+      sprintf(s, ",\"StromPV\":%s,\"Temperatur\":%d", st, daten.temperatur);
   }else{
       strcat(s, ",\"StromPV\":0,\"Temperatur\":0");
   }
@@ -138,14 +143,35 @@ void dateiSenden(const char *dn, const char *typ = "text/html"){
 void fehlerseite(){
   server.send(404, "text/plain", "Link wurde nicht gefunden!");
 }
-
 void hauptseite(){
   dateiSenden("/index.html");
 }
 
+void hauptseiteBef(){
+  if(server.hasArg("bef")){
+    if(server.arg("bef").equals("lad")){
+      speicher.sendeTel(telLa, true);
+    }else if(server.arg("bef").equals("ent")){
+      speicher.sendeTel(telEl, true);
+    }else if(server.arg("bef").equals("spa")){
+      speicher.sendeTel(telSa);
+    }else if(server.arg("bef").equals("md")){
+      speicher.sendeTel(telMD);
+    }
+    delay(100);
+    dateiSenden("/index.html");
+  }else if(server.hasArg("rst")){
+    server.client().stop();
+    delay(100);
+    ESP.restart();
+  }else{
+    dateiSenden("/index.html");
+  }
+}
+
 void einstellungsmenue(){
-  einst.setEinst();
   dateiSenden("/einst.html");
+  einst.setEinst();
 }
 
 void einstellungAll(){
@@ -176,24 +202,10 @@ void sendeEinst(){
   server.send(200, "application/json", einst.json);
 }
 
-void mehrdaten(){
-  hauptseite();
-  speicher.sendeTel(telMD);
-}
-
 void befehle(){
-  boolean b = false;
+  server.send(200, "text/plain", "Ok");
   if(server.hasArg("bef")){
-    if(server.arg("bef").equals("lad")){
-      speicher.sendeTel(telLa, true);
-      b = true;
-    }else if(server.arg("bef").equals("ent")){
-      speicher.sendeTel(telEl, true);
-      b = true;
-    }else if(server.arg("bef").equals("spa")){
-      speicher.sendeTel(telSa);
-      b = true;
-    }else if(server.arg("bef").equals("laden")){
+    if(server.arg("bef").equals("laden")){
         speicher.sendeTel(telLa, true);
     }else if(server.arg("bef").equals("entladen")){
       speicher.sendeTel(telEl, true);
@@ -211,37 +223,51 @@ void befehle(){
       speicher.sendeTel(telMD);
     }
   }
-  if(b)
-    dateiSenden("/index.html");
-  else
-    server.send(200, "text/html", "Ok");
-}
-
-void softreset(){
-  server.send(200, "text/html", "Restart_Ok");
-  delay(500);
-  ESP.restart();
 }
 
 void logdaten(){
   server.send(200, "text/plain", getLog());
 }
 
+File datei; 
+void upload(){
+  HTTPUpload& upload = server.upload();
+  Serial.print("Upload Status:"); Serial.println(upload.status);
+  if(upload.status == UPLOAD_FILE_START){
+    String filename = upload.filename;
+    Serial.print("Upload File Name: "); Serial.println(filename);
+    LittleFS.remove(filename);
+    datei = LittleFS.open(filename, "w");
+    filename = String();
+  }
+  else if(upload.status == UPLOAD_FILE_WRITE){
+    if(datei) datei.write(upload.buf, upload.currentSize);
+  } 
+  else if(upload.status == UPLOAD_FILE_END){
+    if(datei){
+      datei.close();
+      Serial.print("Upload Size: "); Serial.println(upload.totalSize);
+    }else{
+      Serial.println("Upload fehlgeschlagen.");
+    }
+  }
+}
+
 void setupWS(){
   server.onNotFound(fehlerseite);
-  server.on("/", hauptseite);
-  server.on("/einst", einstellungsmenue);
-  server.on("/einstAll", einstellungAll);
-  server.on("/einstWl", einstellungWl);
-  server.on("/einstMq", einstellungMq);
-  server.on("/einstOt", einstellungOt);
+  server.on("/",HTTP_GET, hauptseite);
+  server.on("/",HTTP_POST, hauptseiteBef);
+  server.on("/einst",HTTP_POST, einstellungsmenue);
+  server.on("/einstAll",HTTP_POST, einstellungAll);
+  server.on("/einstWl",HTTP_POST, einstellungWl);
+  server.on("/einstMq",HTTP_POST, einstellungMq);
+  server.on("/einstOt",HTTP_POST, einstellungOt);
   server.on("/einst.css", einstellungCSS);
   server.on("/daten.json", sendeDaten);
   server.on("/einst.json", sendeEinst);
-  server.on("/md4", mehrdaten);
-  server.on("/befehle", befehle);
-  server.on("/rst", softreset);
+  server.on("/befehle",HTTP_GET, befehle);
   server.on("/log", logdaten);
+  server.on("/upload",HTTP_POST, einstellungOt, upload);
   server.begin();
 }
 
@@ -249,7 +275,8 @@ void setupWS(){
 void callback(char* topic, byte* payload, unsigned int length){
   int i = strlen(einst.mqttTp.c_str());
   if(strncmp(topic, einst.mqttTp.c_str(), i) == 0 && strcmp(topic + i, "/Befehl") == 0){
-    char pl[length + 1] = {'\0'};
+    char pl[length + 1];
+    pl[length] = '\0';
     memcpy(pl, payload, length);
     if(strcmp(pl, "laden") == 0){
       speicher.sendeTel(telLa, true);
@@ -265,6 +292,8 @@ void callback(char* topic, byte* payload, unsigned int length){
       speicher.sendeTel(telEl);
     }else if(strcmp(pl, "entladen_ein") == 0){
       speicher.sendeTel(telEl + 1);
+    }else if(strcmp(pl, "mehr_daten") == 0){
+      speicher.sendeTel(telMD);
     }
   }
 }
@@ -319,7 +348,7 @@ tm dat;
 
 void setupNTP(){
   if(!apModus){
-    configTime(MY_TZ, einst.ntzIp);
+    configTime(MY_TZ, einst.ntzIp.c_str());
     speicher.callbackGetDatumZeit(getDatumZeit);
   }
 }

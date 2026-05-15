@@ -7,55 +7,67 @@
         <title>Speicher M01 - OTA Update</title>
     </head>
     <body>
-        <div class='div0'>
+        <div class='hauptseite'>
             <div>
                 <h2>Speicher M01</h2>
             </div>
-            <fieldset>
-                <legend>
-                    &nbsp;Firmware&nbsp;
-                </legend>
+            <div class='field'>
+                <div class='fieldlabel'>Firmware</div>
                 <form method='POST' action='update' enctype='multipart/form-data'>
-                    <div class='div2'>
+                    <div class='taste'>
                         <input id='fu1' type='file' accept='.bin,.bin.gz' name='firmware'>
                         <label for='fu1' class="fu">
                             <span>Datei laden</span>
                         </label>
                     </div>
-                    <div class='div2'>
+                    <div class='taste'>
                         <button value='Update Firmware' type='submit' class='button bgrn'>Update Firmware</button>
                     </div>
                 </form>
-            </fieldset>
-            <div class='div2'></div>
-            <fieldset>
-                <legend>
-                    &nbsp;Dateisystem&nbsp;
-                </legend>
+            </div>
+            <div class='taste'></div>
+            <div class='field'>
+                <div class='fieldlabel'>Dateisystem</div>
                 <form method='POST' action='update' enctype='multipart/form-data'>
-                    <div class='div2'>
+                    <div class='taste'>
                         <input id='fu2' type='file' accept='.bin,.bin.gz' name='filesystem'>
                         <label for='fu2' class='fu'>
                             <span>Datei laden</span>
                         </label>
                     </div>
-                    <div class='div5'>
+                    <div class='warnung'>
                         Achtung!<br>
-                        Alle Einstellungen müssen neu eingegeben werden.
+                        Alle Einstellungen<br> werden zur&uuml;ckgesetzt.
                     </div>
-                    <div class='div2'>
+                    <div class='taste'>
                         <button value='Update FileSystem' type='submit' class='button bgrn'>Update Dateisystem</button>
                     </div>
                 </form>
-            </fieldset>
-            <div class='div3'>
-                <form id=but3 class='db' action='einst' method='get'><button>Einstellungen</button></form>
             </div>
-            <div class='div2'>
-                <form class='db' action='/' method='get'><button>Hauptfenster</button></form>
-                <div style='text-align:right;font-size:11px;'>
-                    <hr/><a href='' target='_blank' style='color:#aaa;'>Speicher2Mqtt 0.1 von Martin Dienert</a>
-                </div>
+            <div class='taste'></div>
+            <div class='field'>
+                <div class='fieldlabel'>Dateien</div>
+                <form method='POST' action='upload' enctype='multipart/form-data'>
+                    <div class='taste'>
+                        <input id='ul' type='file' accept='.json,.html' name='datei'>
+                        <label for='ul' class="fu">
+                            <span>Datei laden<sladen</span>
+                        </label>
+                    </div>
+                    <div class='taste'>
+                        <button value='datei' type='submit' class='button bgrn'>Datei hochladen</button>
+                    </div>
+                </form>
+            </div>
+            <div class='taste abstand'>
+                <form id=but3 class='db' action='einst' method='post'><button>Einstellungen</button></form>
+            </div>
+            <div class='taste'>
+                <form class='db' action='/' method='post'><button>Hauptfenster</button></form>
+            </div>
+            <div class='imp'>
+                <hr/>
+                <a class='projekt' href='https://github.com/MartinDienert/Venus2Mqtt' target='_blank'>Speicher2Mqtt 0.2 von Martin Dienert</a>
             </div>
         </div>
     </body>
