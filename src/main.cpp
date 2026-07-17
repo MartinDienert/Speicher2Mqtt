@@ -68,15 +68,26 @@ char* getLog(){
 // Json -----------------------------------------
 char json[200] = {'\0'};
 
+void floatStr(char *buf, float v){                 // sprintf("%f",..) liefert auf dem ESP8266-Core teils leere Strings
+  if(isnan(v) || isinf(v)) v = 0.0;
+  dtostrf(v, 1, 1, buf);
+}
+
 void generiereJson(Daten daten){
   char datum[36];
   char zeit[36];
   getDatumZeitStr(datum, zeit);
-  sprintf(json, "{\"Spannung\":%.1f,\"Ladezustand\":%d,\"StromAkku\":%.1f,\"Typ\":%d",
-      daten.spannung, daten.soc, daten.stromakku, daten.typ);
+  char spannungS[10];
+  char stromAkkuS[10];
+  floatStr(spannungS, daten.spannung);
+  floatStr(stromAkkuS, daten.stromakku);
+  sprintf(json, "{\"Spannung\":%s,\"Ladezustand\":%d,\"StromAkku\":%s,\"Typ\":%d",
+      spannungS, daten.soc, stromAkkuS, daten.typ);
   char s[150] = {'\0'};
   if(daten.typ == 2){
-      sprintf(s, ",\"StromPV\":%.1f,\"Temperatur\":%d", daten.strompv, daten.temperatur);
+      char stromPvS[10];
+      floatStr(stromPvS, daten.strompv);
+      sprintf(s, ",\"StromPV\":%s,\"Temperatur\":%d", stromPvS, daten.temperatur);
   }else{
       strcat(s, ",\"StromPV\":0,\"Temperatur\":0");
   }
@@ -243,7 +254,8 @@ void setupWS(){
 void callback(char* topic, byte* payload, unsigned int length){
   int i = strlen(einst.mqttTp.c_str());
   if(strncmp(topic, einst.mqttTp.c_str(), i) == 0 && strcmp(topic + i, "/Befehl") == 0){
-    char pl[length + 1] = {'\0'};
+    char pl[32] = {'\0'};
+    if(length > sizeof(pl) - 1) length = sizeof(pl) - 1;
     memcpy(pl, payload, length);
     if(strcmp(pl, "laden") == 0){
       speicher.sendeTel(telLa, true);
@@ -269,7 +281,7 @@ void setupMqtt(){
 }
 
 void reconnectMqtt(){
-  if(!apModus){
+  if(WiFi.status() == WL_CONNECTED){
     mqttClient.setServer(einst.mqttIp.c_str(), einst.mqttPo.toInt());       // Mqtt Server Ip, Port
     int i = 0;
     while(i < 2 && !mqttClient.connected()){
@@ -283,6 +295,9 @@ void reconnectMqtt(){
       if(c){
         mqttClient.subscribe((einst.mqttTp + "/Befehl").c_str());
       }else{
+        char s[40];
+        sprintf(s, "Mqtt Connect fehlgeschlagen, state=%d", mqttClient.state());
+        addLog(s);
         delay(500);
       }
       i++;
@@ -291,12 +306,13 @@ void reconnectMqtt(){
 }
 
 void mqttPub(){
-  if(einst.mqtt && !apModus){
+  if(einst.mqtt && WiFi.status() == WL_CONNECTED){
     if(!mqttClient.connected()){
       reconnectMqtt();
     }
     if(mqttClient.connected()){
-      mqttClient.publish((einst.mqttTp + "/Daten").c_str(), getJson());
+      if(!mqttClient.publish((einst.mqttTp + "/Daten").c_str(), getJson()))
+        addLog("Mqtt Publish fehlgeschlagen.");
     }
   }
 }
@@ -306,18 +322,14 @@ void mqttPub(){
 tm dat;
 
 void setupNTP(){
-  if(!apModus){
-    configTime(MY_TZ, einst.ntzIp);
-    speicher.callbackGetDatumZeit(getDatumZeit);
-  }
+  configTime(MY_TZ, einst.ntzIp.c_str());       // SNTP synchronisiert intern selbstständig, sobald WLAN verfügbar ist
+  speicher.callbackGetDatumZeit(getDatumZeit);
 }
 
 void getZeit(){
-  if(!apModus){
-    time_t now;
-    time(&now);
-    localtime_r(&now, &dat);
-  }
+  time_t now;
+  time(&now);
+  localtime_r(&now, &dat);
 }
 
 void getDatumZeit(Zeit *z){
@@ -339,13 +351,22 @@ void getDatumZeitStr(char *datum, char *zeit){
 
 // Timer -------------------------------------------
 unsigned long mqttPubZeit = 0;
-const unsigned long mqttPubInterval = 20000;              // 20 Sekunden
+const unsigned long mqttPubInterval = 15000;              // 15 Sekunden
 unsigned long mDatenZeit = 0;
 const unsigned long mDatenInterval = 240000;              // 4 Minuten
 unsigned long testZeit = 0;
 unsigned long testInterval = 30000;
 boolean testB = false;
 int testI = 0;
+unsigned long wifiCheckZeit = 0;
+const unsigned long wifiCheckInterval = 30000;            // 30 Sekunden
+
+void checkWifi(){
+  if(einst.wlan && WiFi.status() != WL_CONNECTED){
+    addLog("WLAN Verbindung verloren, versuche Reconnect.");
+    WiFi.reconnect();
+  }
+}
 
 void timerRun(){
   unsigned long zeit = millis();
@@ -354,6 +375,11 @@ void timerRun(){
     if(mqttPubZeit == 0) mqttPubZeit = 1;
     if(einst.mqtt)
       mqttPub();
+  }
+  if(wifiCheckZeit > 0 && zeit - wifiCheckZeit > wifiCheckInterval){
+    wifiCheckZeit = zeit;
+    if(wifiCheckZeit == 0) wifiCheckZeit = 1;
+    checkWifi();
   }
   if(testZeit > 0 && zeit - testZeit > testInterval){
     testZeit = zeit;
@@ -374,8 +400,14 @@ void setTestTimer(){
   if(testZeit == 0) testZeit = 1;
 }
 
+void setWifiCheckTimer(){
+  wifiCheckZeit = millis();
+  if(wifiCheckZeit == 0) wifiCheckZeit = 1;
+}
+
 void setupTimer(){
   setMqttPubTimer();
+  setWifiCheckTimer();
 //  setTestTimer();
 }
 
@@ -444,7 +476,6 @@ void loop(){
   server.handleClient();
   yield();
   mqttClient.loop();
-  ElegantOTA.loop();
   yield();
   digitalWrite(LED_BUILTIN,HIGH);     // LED ist in der Pause aus
   delay(300);  
